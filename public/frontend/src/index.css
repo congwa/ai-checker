@@ -1,0 +1,38 @@
+/* 业务说明：公开看板全局样式，塑造数据展示所需的清晰层次和动效降级。 */
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  font-family: "Aptos", "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: #08111b;
+  color: #eef7ff;
+  letter-spacing: 0;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(56, 189, 248, 0.16), transparent 30rem),
+    radial-gradient(circle at 82% 2%, rgba(45, 212, 191, 0.12), transparent 28rem),
+    linear-gradient(145deg, #07111f 0%, #0f172a 58%, #09111d 100%);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

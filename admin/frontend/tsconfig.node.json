@@ -1,0 +1,12 @@
+{
+  "//": "业务说明：管理端 Vite 配置文件的 TypeScript 编译边界。",
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "include": ["vite.config.ts"]
+}
