@@ -13,10 +13,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(20, 184, 166, 0.14), transparent 28rem),
-    radial-gradient(circle at 86% 20%, rgba(245, 158, 11, 0.1), transparent 24rem),
-    linear-gradient(135deg, #090d13 0%, #111827 52%, #0d141f 100%);
+  background: #020617;
 }
 
 button,
@@ -36,4 +33,3 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 }
-

@@ -21,7 +21,6 @@ export default function App() {
               <Radar className="h-4 w-4" />
               AI Checker Public
             </div>
-            <h1 className="mt-2 text-2xl font-bold text-slate-50 md:text-3xl">模型相似度公开看板</h1>
           </div>
           <button className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-sky-800 bg-sky-400/10 px-4 text-sm font-semibold text-sky-100 transition hover:bg-sky-400/20 disabled:opacity-50" disabled={dashboard.isLoading} onClick={dashboard.refreshOverview}>
             <RefreshCw className="h-4 w-4" />
@@ -76,4 +75,3 @@ function Metric({ title, value, tone }: MetricProps) {
     </Card>
   );
 }
-

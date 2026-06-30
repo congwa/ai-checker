@@ -6,7 +6,7 @@ import secrets
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import Redis
 
@@ -16,6 +16,7 @@ from app.models import (
     ReferenceUpdate,
     ReferenceView,
     RunDetail,
+    RunJobView,
     RunView,
     TaskCreate,
     TaskUpdate,
@@ -180,6 +181,63 @@ async def run_reference(
         raise HTTPException(status_code=409, detail=str(error)) from error
 
 
+@app.post(
+    "/api/references/{reference_id}/run-jobs",
+    response_model=RunJobView,
+    dependencies=[Depends(require_admin)],
+)
+async def create_reference_run_job(
+    reference_id: str,
+    background_tasks: BackgroundTasks,
+    repository: RedisRepository = Depends(get_repository),
+    settings: Settings = Depends(get_runtime_settings),
+) -> RunJobView:
+    """创建参照标定后台 Job，让页面立即反馈已接收并通过轮询查看进度。"""
+
+    reference = await repository.get_reference(reference_id)
+    if not isinstance(reference, ReferenceView):
+        raise HTTPException(status_code=404, detail="参照不存在")
+    job, created = await repository.create_or_get_run_job(
+        "reference",
+        reference_id,
+        reference.sample_count,
+        "参照运行已排队，等待后台开始采样",
+    )
+    if created:
+        background_tasks.add_task(_run_reference_job, job.id, reference_id, repository, settings)
+    return job
+
+
+@app.get(
+    "/api/run-jobs/active",
+    response_model=list[RunJobView],
+    dependencies=[Depends(require_admin)],
+)
+async def list_active_run_jobs(
+    repository: RedisRepository = Depends(get_repository),
+) -> list[RunJobView]:
+    """列出页面刷新后仍需继续展示等待态的后台运行 Job。"""
+
+    return await repository.list_active_run_jobs()
+
+
+@app.get(
+    "/api/run-jobs/{job_id}",
+    response_model=RunJobView,
+    dependencies=[Depends(require_admin)],
+)
+async def get_run_job(
+    job_id: str,
+    repository: RedisRepository = Depends(get_repository),
+) -> RunJobView:
+    """读取单个后台运行 Job，支撑前端轮询展示进度和最终错误。"""
+
+    job = await repository.get_run_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="运行任务不存在")
+    return job
+
+
 @app.get(
     "/api/references/{reference_id}/runs",
     response_model=list[RunView],
@@ -255,6 +313,36 @@ async def run_task(
         raise HTTPException(status_code=409, detail=str(error)) from error
 
 
+@app.post(
+    "/api/tasks/{task_id}/run-jobs",
+    response_model=RunJobView,
+    dependencies=[Depends(require_admin)],
+)
+async def create_task_run_job(
+    task_id: str,
+    background_tasks: BackgroundTasks,
+    repository: RedisRepository = Depends(get_repository),
+    settings: Settings = Depends(get_runtime_settings),
+) -> RunJobView:
+    """创建任务手动运行后台 Job，让管理员无需等待同步请求完成。"""
+
+    task = await repository.get_task(task_id)
+    if not isinstance(task, TaskView):
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if not task.reference_id:
+        raise HTTPException(status_code=400, detail="任务未选择参照")
+    await _validate_reference(repository, task.reference_id)
+    job, created = await repository.create_or_get_run_job(
+        "task",
+        task_id,
+        task.sample_count,
+        "任务运行已排队，等待后台开始采样",
+    )
+    if created:
+        background_tasks.add_task(_run_task_job, job.id, task_id, repository, settings)
+    return job
+
+
 @app.get(
     "/api/tasks/{task_id}/runs",
     response_model=list[RunView],
@@ -288,9 +376,115 @@ async def get_run_detail(
     return run
 
 
+async def _run_reference_job(
+    job_id: str,
+    reference_id: str,
+    repository: RedisRepository,
+    settings: Settings,
+) -> None:
+    """执行参照后台 Job，并把采样进度、成功或错误原因持续写回 Redis。"""
+
+    await repository.start_run_job(job_id, "参照正在采样")
+
+    async def report_progress(
+        current: int,
+        total: int,
+        success_count: int,
+        failed_count: int,
+    ) -> None:
+        """把参照采样进度写入 Job，供管理台展示等待中的具体进展。"""
+
+        await repository.update_run_job_progress(
+            job_id,
+            current,
+            total,
+            success_count,
+            failed_count,
+            f"参照采样中：{current}/{total}",
+        )
+
+    runner = TaskRunner(repository, settings, progress_reporter=report_progress)
+    try:
+        run = await runner.run_reference(reference_id)
+    except Exception as error:  # noqa: BLE001 - 后台 Job 需要把所有失败转换为用户可见状态
+        await repository.finish_run_job(
+            job_id,
+            "failed",
+            None,
+            0,
+            0,
+            "参照运行失败",
+            str(error),
+        )
+        return
+    await repository.finish_run_job(
+        job_id,
+        run.status,
+        run.id,
+        run.success_count,
+        run.failed_count,
+        "参照标定完成" if run.status == "success" else "参照标定失败",
+        run.error_summary,
+    )
+
+
+async def _run_task_job(
+    job_id: str,
+    task_id: str,
+    repository: RedisRepository,
+    settings: Settings,
+) -> None:
+    """执行任务后台 Job，并把采样、评分和失败摘要持续同步给管理台。"""
+
+    await repository.start_run_job(job_id, "任务正在采样")
+
+    async def report_progress(
+        current: int,
+        total: int,
+        success_count: int,
+        failed_count: int,
+    ) -> None:
+        """把任务采样进度写入 Job，帮助管理员判断等待是否仍在推进。"""
+
+        await repository.update_run_job_progress(
+            job_id,
+            current,
+            total,
+            success_count,
+            failed_count,
+            f"任务采样中：{current}/{total}",
+        )
+
+    runner = TaskRunner(repository, settings, progress_reporter=report_progress)
+    try:
+        run = await runner.run_task(task_id)
+    except Exception as error:  # noqa: BLE001 - 后台 Job 需要把所有失败转换为用户可见状态
+        await repository.finish_run_job(
+            job_id,
+            "failed",
+            None,
+            0,
+            0,
+            "任务运行失败",
+            str(error),
+        )
+        return
+    await repository.finish_run_job(
+        job_id,
+        run.status,
+        run.id,
+        run.success_count,
+        run.failed_count,
+        "任务运行完成" if run.status == "success" else "任务运行失败",
+        run.error_summary,
+    )
+
+
 async def _validate_reference(repository: RedisRepository, reference_id: str) -> None:
-    """校验任务选择的参照配置存在，避免任务保存后无法找到比较基准。"""
+    """校验任务选择的参照已成功标定，避免任务使用不可用的比较基准。"""
 
     reference = await repository.get_reference(reference_id)
     if not isinstance(reference, ReferenceView):
         raise HTTPException(status_code=400, detail="请选择有效参照")
+    if not reference.latest_success_run_id:
+        raise HTTPException(status_code=400, detail="请先成功运行参照，再把它作为任务基准")

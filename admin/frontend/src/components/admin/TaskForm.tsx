@@ -1,6 +1,6 @@
 /** 业务说明：管理端任务表单组件，支持创建任务和编辑模型采样配置。 */
 import { FormEvent, useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
@@ -72,51 +72,52 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
       <CardTitle>{task ? "编辑任务" : "新建任务"}</CardTitle>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="任务名称">
-            <Input value={form.name} required onChange={(event) => setForm({ ...form, name: event.target.value })} />
+          <Field label="任务名称" htmlFor="task-name">
+            <Input id="task-name" value={form.name} required onChange={(event) => setForm({ ...form, name: event.target.value })} />
           </Field>
-          <Field label="Provider">
-            <Select value={form.provider} onChange={(event) => setForm({ ...form, provider: event.target.value as TaskPayload["provider"] })}>
+          <Field label="Provider" htmlFor="task-provider">
+            <Select id="task-provider" value={form.provider} onChange={(event) => setForm({ ...form, provider: event.target.value as TaskPayload["provider"] })}>
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
             </Select>
           </Field>
-          <Field label="Base URL">
-            <Input value={form.base_url} required onChange={(event) => setForm({ ...form, base_url: event.target.value })} />
+          <Field label="Base URL" htmlFor="task-base-url">
+            <Input id="task-base-url" value={form.base_url} required onChange={(event) => setForm({ ...form, base_url: event.target.value })} />
           </Field>
-          <Field label={task ? "API Key（留空沿用）" : "API Key"}>
-            <Input type="password" value={form.api_key ?? ""} required={!task} onChange={(event) => setForm({ ...form, api_key: event.target.value })} />
+          <Field label={task ? "API Key（留空沿用）" : "API Key"} htmlFor="task-api-key">
+            <Input id="task-api-key" type="password" value={form.api_key ?? ""} required={!task} onChange={(event) => setForm({ ...form, api_key: event.target.value })} />
           </Field>
-          <Field label="模型名称">
-            <Input value={form.model} required onChange={(event) => setForm({ ...form, model: event.target.value })} />
+          <Field label="模型名称" htmlFor="task-model">
+            <Input id="task-model" value={form.model} required onChange={(event) => setForm({ ...form, model: event.target.value })} />
           </Field>
-          <Field label="选择参照">
+          <Field label="选择参照" htmlFor="task-reference">
             <Select
+              id="task-reference"
               required
               value={form.reference_id}
               onChange={(event) => setForm({ ...form, reference_id: event.target.value })}
             >
-              <option value="">请选择已标定的参照</option>
+              <option value="">请选择已成功标定的参照</option>
               {references.map((reference) => (
-                <option key={reference.id} value={reference.id}>
+                <option key={reference.id} value={reference.id} disabled={!reference.latest_success_run_id}>
                   {reference.name} / {reference.model}
-                  {reference.latest_run_id ? "" : "（未运行）"}
+                  {reference.latest_success_run_id ? "" : "（未成功标定）"}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="采样次数">
-            <Input type="number" min={10} max={500} value={form.sample_count} onChange={(event) => setForm({ ...form, sample_count: Number(event.target.value) })} />
+          <Field label="采样次数" htmlFor="task-sample-count">
+            <Input id="task-sample-count" type="number" min={10} max={500} value={form.sample_count} onChange={(event) => setForm({ ...form, sample_count: Number(event.target.value) })} />
           </Field>
-          <Field label="间隔秒数">
-            <Input type="number" min={60} value={form.interval_seconds} onChange={(event) => setForm({ ...form, interval_seconds: Number(event.target.value) })} />
+          <Field label="间隔秒数" htmlFor="task-interval-seconds">
+            <Input id="task-interval-seconds" type="number" min={60} value={form.interval_seconds} onChange={(event) => setForm({ ...form, interval_seconds: Number(event.target.value) })} />
           </Field>
-          <Field label={`平滑度 ${form.smoothing_level}`}>
-            <Input type="range" min={0} max={100} value={form.smoothing_level} onChange={(event) => setForm({ ...form, smoothing_level: Number(event.target.value) })} />
+          <Field label={`平滑度 ${form.smoothing_level}`} htmlFor="task-smoothing-level">
+            <Input id="task-smoothing-level" type="range" min={0} max={100} value={form.smoothing_level} onChange={(event) => setForm({ ...form, smoothing_level: Number(event.target.value) })} />
           </Field>
         </div>
-        <Field label="Prompt">
-          <Textarea value={form.prompt} onChange={(event) => setForm({ ...form, prompt: event.target.value })} />
+        <Field label="Prompt" htmlFor="task-prompt">
+          <Textarea id="task-prompt" value={form.prompt} onChange={(event) => setForm({ ...form, prompt: event.target.value })} />
         </Field>
         <div className="flex flex-wrap gap-4 text-sm text-slate-300">
           <label className="flex items-center gap-2">
@@ -128,8 +129,8 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
             公开展示
           </label>
         </div>
-        <Button className="w-full" type="submit" disabled={isSaving}>
-          <Save className="h-4 w-4" />
+        <Button className="w-full" type="submit" disabled={isSaving} aria-busy={isSaving}>
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {isSaving ? "保存中" : "保存任务"}
         </Button>
       </form>
@@ -139,14 +140,15 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
 
 interface FieldProps {
   label: string;
+  htmlFor: string;
   children: React.ReactNode;
 }
 
 /** 业务说明：包装表单字段标签和控件，保持任务配置录入的扫描节奏一致。 */
-function Field({ label, children }: FieldProps) {
+function Field({ label, htmlFor, children }: FieldProps) {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label htmlFor={htmlFor}>{label}</Label>
       {children}
     </div>
   );

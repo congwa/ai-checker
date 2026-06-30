@@ -14,6 +14,9 @@ from app.models import (
     ReferenceUpdate,
     ReferenceView,
     RunDetail,
+    RunJobKind,
+    RunJobStatus,
+    RunJobView,
     RunView,
     TaskCreate,
     TaskUpdate,
@@ -124,6 +127,8 @@ class RedisRepository:
             "prompt": payload.prompt,
             "sample_count": str(payload.sample_count),
             "latest_run_id": "",
+            "latest_success_run_id": "",
+            "latest_run_status": "",
             "created_at": str(now),
             "updated_at": str(now),
         }
@@ -201,12 +206,16 @@ class RedisRepository:
         """保存参照标定运行，并更新参照的最新可用分布。"""
 
         await self.save_run(run, distribution, numbers)
+        updates = {
+            "latest_run_id": run.id,
+            "latest_run_status": run.status,
+            "updated_at": str(time.time()),
+        }
+        if run.status == "success":
+            updates["latest_success_run_id"] = run.id
         async with self.redis.pipeline(transaction=True) as pipe:
             pipe.zadd(f"reference:{reference_id}:runs", {run.id: run.completed_at})
-            pipe.hset(
-                self._reference_key(reference_id),
-                mapping={"latest_run_id": run.id, "updated_at": str(time.time())},
-            )
+            pipe.hset(self._reference_key(reference_id), mapping=updates)
             await pipe.execute()
         return run
 
@@ -223,12 +232,149 @@ class RedisRepository:
         """读取参照最新成功运行的分布，任务执行时用它作为比较基准。"""
 
         reference = await self.get_reference(reference_id)
-        if not isinstance(reference, ReferenceView) or not reference.latest_run_id:
+        if not isinstance(reference, ReferenceView) or not reference.latest_success_run_id:
             return None
-        distribution = await self.get_run_distribution(reference.latest_run_id)
+        distribution = await self.get_run_distribution(reference.latest_success_run_id)
         if not distribution:
             return None
-        return reference.latest_run_id, distribution
+        return reference.latest_success_run_id, distribution
+
+    async def create_or_get_run_job(
+        self,
+        kind: RunJobKind,
+        target_id: str,
+        progress_total: int,
+        message: str,
+    ) -> tuple[RunJobView, bool]:
+        """创建或复用目标的活跃运行 Job，避免用户重复点击触发多次采样。"""
+
+        active_key = self._active_run_job_key(kind, target_id)
+        active_job_id = await self.redis.get(active_key)
+        if active_job_id:
+            active_job = await self.get_run_job(active_job_id)
+            if active_job is not None and active_job.status in {"queued", "running"}:
+                return active_job, False
+        now = time.time()
+        job_id = str(uuid.uuid4())
+        raw_job = {
+            "id": job_id,
+            "kind": kind,
+            "target_id": target_id,
+            "status": "queued",
+            "run_id": "",
+            "progress_current": "0",
+            "progress_total": str(progress_total),
+            "success_count": "0",
+            "failed_count": "0",
+            "message": message,
+            "error_summary": "",
+            "created_at": str(now),
+            "started_at": "",
+            "completed_at": "",
+            "updated_at": str(now),
+        }
+        async with self.redis.pipeline(transaction=True) as pipe:
+            pipe.hset(self._run_job_key(job_id), mapping=raw_job)
+            pipe.set(active_key, job_id, ex=900)
+            pipe.sadd("run_job:active:index", self._active_run_job_token(kind, target_id))
+            await pipe.execute()
+        return self._decode_run_job(raw_job), True
+
+    async def get_run_job(self, job_id: str) -> RunJobView | None:
+        """读取手动运行 Job 状态，供前端轮询展示等待、成功或失败。"""
+
+        raw_job = await self.redis.hgetall(self._run_job_key(job_id))
+        if not raw_job:
+            return None
+        return self._decode_run_job(raw_job)
+
+    async def list_active_run_jobs(self) -> list[RunJobView]:
+        """返回仍在排队或运行中的 Job，便于页面刷新后恢复等待反馈。"""
+
+        jobs: list[RunJobView] = []
+        for token in await self.redis.smembers("run_job:active:index"):
+            active_job_id = await self.redis.get(f"run_job:active:{token}")
+            if not active_job_id:
+                await self.redis.srem("run_job:active:index", token)
+                continue
+            job = await self.get_run_job(active_job_id)
+            if job is None or job.status not in {"queued", "running"}:
+                await self.redis.srem("run_job:active:index", token)
+                continue
+            jobs.append(job)
+        return sorted(jobs, key=lambda job: job.created_at, reverse=True)
+
+    async def start_run_job(self, job_id: str, message: str) -> RunJobView | None:
+        """把 Job 标记为运行中，让用户知道后台已经开始实际采样。"""
+
+        now = time.time()
+        await self.redis.hset(
+            self._run_job_key(job_id),
+            mapping={
+                "status": "running",
+                "started_at": str(now),
+                "updated_at": str(now),
+                "message": message,
+            },
+        )
+        return await self.get_run_job(job_id)
+
+    async def update_run_job_progress(
+        self,
+        job_id: str,
+        progress_current: int,
+        progress_total: int,
+        success_count: int,
+        failed_count: int,
+        message: str,
+    ) -> RunJobView | None:
+        """更新采样进度和成功失败数量，支撑前端行内进度反馈。"""
+
+        await self.redis.hset(
+            self._run_job_key(job_id),
+            mapping={
+                "progress_current": str(progress_current),
+                "progress_total": str(progress_total),
+                "success_count": str(success_count),
+                "failed_count": str(failed_count),
+                "message": message,
+                "updated_at": str(time.time()),
+            },
+        )
+        return await self.get_run_job(job_id)
+
+    async def finish_run_job(
+        self,
+        job_id: str,
+        status: RunJobStatus,
+        run_id: str | None,
+        success_count: int,
+        failed_count: int,
+        message: str,
+        error_summary: str | None = None,
+    ) -> RunJobView | None:
+        """结束 Job 并清理活跃索引，让用户看到最终结果且重复点击可启动新运行。"""
+
+        job = await self.get_run_job(job_id)
+        if job is None:
+            return None
+        now = time.time()
+        await self.redis.hset(
+            self._run_job_key(job_id),
+            mapping={
+                "status": status,
+                "run_id": run_id or "",
+                "progress_current": str(job.progress_total),
+                "success_count": str(success_count),
+                "failed_count": str(failed_count),
+                "message": message,
+                "error_summary": error_summary or "",
+                "completed_at": str(now),
+                "updated_at": str(now),
+            },
+        )
+        await self._clear_active_run_job(job.kind, job.target_id)
+        return await self.get_run_job(job_id)
 
     async def get_task(
         self,
@@ -393,6 +539,28 @@ class RedisRepository:
 
         return f"run:{run_id}"
 
+    def _run_job_key(self, job_id: str) -> str:
+        """生成手动运行 Job 的 Hash key，让轮询接口能读取同一状态记录。"""
+
+        return f"run_job:{job_id}"
+
+    def _active_run_job_token(self, kind: RunJobKind, target_id: str) -> str:
+        """生成目标活跃 Job 标识，用于防止同一参照或任务被重复运行。"""
+
+        return f"{kind}:{target_id}"
+
+    def _active_run_job_key(self, kind: RunJobKind, target_id: str) -> str:
+        """生成目标活跃 Job key，让重复点击可以复用已有后台运行。"""
+
+        return f"run_job:active:{self._active_run_job_token(kind, target_id)}"
+
+    async def _clear_active_run_job(self, kind: RunJobKind, target_id: str) -> None:
+        """清理目标活跃 Job 索引，保证终态 Job 不再阻塞下一次手动运行。"""
+
+        token = self._active_run_job_token(kind, target_id)
+        await self.redis.delete(f"run_job:active:{token}")
+        await self.redis.srem("run_job:active:index", token)
+
     async def _sync_public_index(self, task_id: str, public_enabled: bool) -> None:
         """根据任务公开开关维护前台可见任务集合，避免前台读取后台私有任务。"""
 
@@ -455,6 +623,8 @@ class RedisRepository:
             "prompt": raw_reference["prompt"],
             "sample_count": int(raw_reference["sample_count"]),
             "latest_run_id": raw_reference.get("latest_run_id") or None,
+            "latest_success_run_id": raw_reference.get("latest_success_run_id") or None,
+            "latest_run_status": raw_reference.get("latest_run_status") or None,
             "created_at": float(raw_reference["created_at"]),
             "updated_at": float(raw_reference["updated_at"]),
         }
@@ -478,6 +648,27 @@ class RedisRepository:
             baseline_run_id=raw_run.get("baseline_run_id") or None,
             error_summary=raw_run.get("error_summary") or None,
             stats=stats,
+        )
+
+    def _decode_run_job(self, raw_job: dict[str, Any]) -> RunJobView:
+        """把 Redis Hash 转换为 Job 视图，统一后台轮询和行内反馈的数据格式。"""
+
+        return RunJobView(
+            id=raw_job["id"],
+            kind=raw_job["kind"],
+            target_id=raw_job["target_id"],
+            status=raw_job["status"],
+            run_id=raw_job.get("run_id") or None,
+            progress_current=int(raw_job.get("progress_current") or 0),
+            progress_total=int(raw_job.get("progress_total") or 0),
+            success_count=int(raw_job.get("success_count") or 0),
+            failed_count=int(raw_job.get("failed_count") or 0),
+            message=raw_job.get("message") or None,
+            error_summary=raw_job.get("error_summary") or None,
+            created_at=float(raw_job["created_at"]),
+            started_at=float(raw_job["started_at"]) if raw_job.get("started_at") else None,
+            completed_at=float(raw_job["completed_at"]) if raw_job.get("completed_at") else None,
+            updated_at=float(raw_job["updated_at"]),
         )
 
     def _bool_to_str(self, value: bool) -> str:

@@ -17,6 +17,10 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 /** 业务说明：渲染紧凑状态标签，帮助用户在任务列表中快速扫读风险。 */
 export function Badge({ className, tone = "neutral", ...props }: BadgeProps) {
-  return <span className={cn("inline-flex rounded px-2 py-1 text-xs font-semibold", tones[tone], className)} {...props} />;
+  return (
+    <span
+      className={cn("inline-flex items-center rounded px-2 py-1 text-xs font-semibold", tones[tone], className)}
+      {...props}
+    />
+  );
 }
-

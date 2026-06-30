@@ -1,7 +1,17 @@
 /** 业务说明：后台工作台页面，整合任务配置、评分曲线、运行历史和分布诊断。 */
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { LogOut, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  Loader2,
+  LogOut,
+  PlusCircle,
+  RefreshCw,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import { DistributionChart } from "@/components/admin/DistributionChart";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { ReferenceForm } from "@/components/admin/ReferenceForm";
@@ -17,6 +27,7 @@ import { ADMIN_NAV_ITEMS, type AdminSection } from "@/lib/config/navigation";
 import { formatScore } from "@/lib/score";
 import { formatDateTime } from "@/lib/utils";
 import { useAdminDashboard } from "@/hooks/use-admin-dashboard";
+import type { OperationNotice } from "@/hooks/use-admin-dashboard";
 
 interface AdminDashboardPageProps {
   token: string;
@@ -47,9 +58,9 @@ export function AdminDashboardPage({ token, onLogout }: AdminDashboardPageProps)
   }
 
   return (
-    <main className="min-h-screen bg-slate-950/20">
+    <main className="min-h-screen bg-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="border-b border-slate-800 bg-slate-950/90 px-4 py-4 lg:border-b-0 lg:border-r">
+        <aside className="border-b border-slate-800 bg-slate-950 px-4 py-4 lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-3 px-2">
             <div className="grid h-10 w-10 place-items-center rounded-md border border-teal-400/30 bg-teal-400/10 text-teal-200">
               <ShieldCheck className="h-5 w-5" />
@@ -101,9 +112,18 @@ export function AdminDashboardPage({ token, onLogout }: AdminDashboardPageProps)
           </div>
           <div className="flex items-center gap-3">
             <Badge tone="success">已登录</Badge>
-            <Button variant="secondary" onClick={dashboard.refreshTasks} disabled={dashboard.isLoading}>
-              <RefreshCw className="h-4 w-4" />
-              刷新
+            <Button
+              variant="secondary"
+              onClick={dashboard.refreshTasks}
+              disabled={dashboard.isLoading}
+              aria-busy={dashboard.isLoading}
+            >
+              {dashboard.isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {dashboard.isLoading ? "刷新中" : "刷新"}
             </Button>
             <Button variant="secondary" onClick={onLogout}>
               <LogOut className="h-4 w-4" />
@@ -112,11 +132,16 @@ export function AdminDashboardPage({ token, onLogout }: AdminDashboardPageProps)
           </div>
         </motion.header>
 
-        {dashboard.error ? (
-          <div className="mt-5 rounded-md border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-100">
-            {dashboard.error}
-          </div>
-        ) : null}
+          {dashboard.notice ? (
+            <OperationNoticePanel notice={dashboard.notice} onDismiss={() => dashboard.setNotice(null)} />
+          ) : dashboard.error ? (
+            <div
+              className="mt-5 rounded-md border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-100"
+              role="alert"
+            >
+              {dashboard.error}
+            </div>
+          ) : null}
 
           <div className="mt-5">
             {activeSection === "tasks" ? (
@@ -169,42 +194,90 @@ interface ReferenceSectionProps {
   dashboard: DashboardState;
 }
 
+interface OperationNoticePanelProps {
+  notice: OperationNotice;
+  onDismiss: () => void;
+}
+
+/** 业务说明：展示最近一次后台操作的结论，帮助管理员确认动作是否成功或如何恢复。 */
+function OperationNoticePanel({ notice, onDismiss }: OperationNoticePanelProps) {
+  const Icon =
+    notice.tone === "success" ? CheckCircle2 : notice.tone === "error" ? AlertTriangle : Info;
+  const toneClass =
+    notice.tone === "success"
+      ? "border-teal-400/30 bg-teal-400/10 text-teal-100"
+      : notice.tone === "error"
+        ? "border-rose-400/30 bg-rose-400/10 text-rose-100"
+        : "border-sky-400/30 bg-sky-400/10 text-sky-100";
+
+  return (
+    <div
+      className={`mt-5 flex items-start gap-3 rounded-md border p-3 text-sm ${toneClass}`}
+      role={notice.tone === "error" ? "alert" : "status"}
+      aria-live="polite"
+    >
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <div className="min-w-0 flex-1">
+        <div className="font-semibold">{notice.title}</div>
+        <div className="mt-1 text-slate-200/90">{notice.message}</div>
+      </div>
+      <button
+        type="button"
+        className="rounded p-1 text-current opacity-70 transition hover:bg-white/10 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-current"
+        aria-label="关闭操作提示"
+        onClick={onDismiss}
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 /** 业务说明：渲染参照管理页，用户先配置并运行参照，再创建监控任务。 */
 function ReferenceSection({ dashboard }: ReferenceSectionProps) {
+  const [isCreating, setIsCreating] = useState(false);
+
   return (
     <div className="space-y-5">
       <section className="grid gap-5 md:grid-cols-3">
         <MetricCard title="参照数" value={String(dashboard.references.length)} tone="text-slate-100" />
         <MetricCard
           title="已标定"
-          value={String(dashboard.references.filter((reference) => reference.latest_run_id).length)}
+          value={String(dashboard.references.filter((reference) => reference.latest_success_run_id).length)}
           tone="text-teal-200"
         />
         <MetricCard
-          title="待标定"
-          value={String(dashboard.references.filter((reference) => !reference.latest_run_id).length)}
+          title="需处理"
+          value={String(dashboard.references.filter((reference) => !reference.latest_success_run_id).length)}
           tone="text-amber-200"
         />
       </section>
 
-      <ReferenceForm onSubmit={dashboard.saveReference} />
-
       <Card>
-        <div className="border-b border-slate-800 pb-4">
-          <CardTitle>参照列表</CardTitle>
-          <div className="mt-1 text-sm text-slate-400">
-            参照是独立基准。先运行参照生成分布，再在任务里选择它做比较对象。
+        <div className="flex flex-col gap-3 border-b border-slate-800 pb-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>参照列表</CardTitle>
+            <div className="mt-1 text-sm text-slate-400">
+              只有成功标定的参照才能作为任务基准；失败时请检查模型、密钥或 Prompt 后重试。
+            </div>
           </div>
+          <Button variant={isCreating ? "secondary" : "primary"} onClick={() => setIsCreating((value) => !value)}>
+            {isCreating ? <X className="h-4 w-4" /> : <PlusCircle className="h-4 w-4" />}
+            {isCreating ? "收起表单" : "新增参照"}
+          </Button>
         </div>
         <div className="mt-4">
           <ReferenceList
             references={dashboard.references}
-            busyId={dashboard.busyTaskId}
+            runJobByTarget={dashboard.runJobByTarget}
+            deletingIds={dashboard.deletingIds}
             onRun={dashboard.runReferenceNow}
             onDelete={dashboard.removeReference}
           />
         </div>
       </Card>
+
+      {isCreating ? <ReferenceForm onSubmit={dashboard.saveReference} /> : null}
     </div>
   );
 }
@@ -237,7 +310,8 @@ function TaskListSection({ dashboard, onAdd, onEdit, onHistory }: TaskListSectio
             tasks={dashboard.tasks}
             referenceMap={dashboard.referenceMap}
             selectedTaskId={dashboard.selectedTaskId}
-            busyTaskId={dashboard.busyTaskId}
+            runJobByTarget={dashboard.runJobByTarget}
+            deletingIds={dashboard.deletingIds}
             onSelect={dashboard.setSelectedTaskId}
             onRun={dashboard.runNow}
             onDelete={dashboard.removeTask}

@@ -10,6 +10,8 @@ from app.config import DEFAULT_PROMPT
 
 ProviderName = Literal["openai", "anthropic"]
 RunStatus = Literal["success", "failed"]
+RunJobKind = Literal["reference", "task"]
+RunJobStatus = Literal["queued", "running", "success", "failed"]
 
 
 class ReferenceCreate(BaseModel):
@@ -47,6 +49,8 @@ class ReferenceView(BaseModel):
     prompt: str
     sample_count: int
     latest_run_id: str | None = None
+    latest_success_run_id: str | None = None
+    latest_run_status: RunStatus | None = None
     created_at: float
     updated_at: float
 
@@ -132,3 +136,23 @@ class RunDetail(RunView):
 
     distribution: list[float]
     numbers: list[int]
+
+
+class RunJobView(BaseModel):
+    """返回手动运行任务的后台 Job 状态，让管理端能展示排队、运行和失败闭环。"""
+
+    id: str
+    kind: RunJobKind
+    target_id: str
+    status: RunJobStatus
+    run_id: str | None = None
+    progress_current: int = 0
+    progress_total: int = 0
+    success_count: int = 0
+    failed_count: int = 0
+    message: str | None = None
+    error_summary: str | None = None
+    created_at: float
+    started_at: float | None = None
+    completed_at: float | None = None
+    updated_at: float

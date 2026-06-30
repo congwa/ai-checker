@@ -29,6 +29,7 @@ class ProviderRequest:
 
 
 NumberRequester = Callable[[ProviderRequest], Awaitable[int | None]]
+ProgressReporter = Callable[[int, int, int, int], Awaitable[None]]
 
 
 def normalize_base_url(base_url: str) -> str:
@@ -151,6 +152,7 @@ async def collect_numbers(
     request: ProviderRequest,
     sample_count: int,
     delay_seconds: float,
+    progress_reporter: ProgressReporter | None = None,
     requester: NumberRequester = request_single_number,
 ) -> tuple[list[int], list[str]]:
     """按任务采样次数批量请求模型，返回有效数字和可展示的失败摘要。"""
@@ -166,6 +168,8 @@ async def collect_numbers(
                 numbers.append(number)
         except Exception as error:  # noqa: BLE001 - Runner 需要继续采样并汇总失败原因
             errors.append(f"第 {index + 1} 次请求失败: {error}")
+        if progress_reporter is not None:
+            await progress_reporter(index + 1, sample_count, len(numbers), len(errors))
         if delay_seconds > 0 and index < sample_count - 1:
             await asyncio.sleep(delay_seconds)
     return numbers, errors

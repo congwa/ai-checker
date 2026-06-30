@@ -3,6 +3,7 @@ import type {
   ReferencePayload,
   ReferenceView,
   RunDetail,
+  RunJobView,
   RunView,
   TaskPayload,
   TaskView,
@@ -77,6 +78,13 @@ export function runReference(token: string, referenceId: string) {
   return requestJson<RunView>(`/api/references/${referenceId}/run`, token, { method: "POST" });
 }
 
+/** 业务说明：创建参照后台标定 Job，让管理端可以立即显示等待与进度状态。 */
+export function createReferenceRunJob(token: string, referenceId: string) {
+  return requestJson<RunJobView>(`/api/references/${referenceId}/run-jobs`, token, {
+    method: "POST",
+  });
+}
+
 /** 业务说明：创建监控任务，提交后台用户录入的模型 API 与评分配置。 */
 export function createTask(token: string, payload: TaskPayload) {
   return requestJson<TaskView>("/api/tasks", token, {
@@ -101,6 +109,21 @@ export function deleteTask(token: string, taskId: string) {
 /** 业务说明：手动触发一次任务运行，用于立即验证模型状态并生成曲线点。 */
 export function runTask(token: string, taskId: string) {
   return requestJson<RunView>(`/api/tasks/${taskId}/run`, token, { method: "POST" });
+}
+
+/** 业务说明：创建任务后台运行 Job，让管理端通过轮询展示采样进度和错误摘要。 */
+export function createTaskRunJob(token: string, taskId: string) {
+  return requestJson<RunJobView>(`/api/tasks/${taskId}/run-jobs`, token, { method: "POST" });
+}
+
+/** 业务说明：读取单个后台运行 Job，用于刷新行内进度和最终状态。 */
+export function fetchRunJob(token: string, jobId: string) {
+  return requestJson<RunJobView>(`/api/run-jobs/${jobId}`, token);
+}
+
+/** 业务说明：读取当前仍在执行的后台运行 Job，支持页面刷新后恢复等待反馈。 */
+export function fetchActiveRunJobs(token: string) {
+  return requestJson<RunJobView[]>("/api/run-jobs/active", token);
 }
 
 /** 业务说明：读取任务近期运行历史，支撑后台曲线、错误摘要和分布详情。 */

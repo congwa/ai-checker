@@ -9,7 +9,7 @@ from collections.abc import Awaitable, Callable
 from app.config import Settings
 from app.fingerprint_algorithm import MIN_VALID_SAMPLES
 from app.models import RunView
-from app.provider import ProviderRequest, collect_numbers
+from app.provider import ProgressReporter, ProviderRequest, collect_numbers
 from app.repository import RedisRepository
 from app.scoring import (
     calculate_distribution,
@@ -20,7 +20,10 @@ from app.scoring import (
 )
 from app.security import decrypt_api_key
 
-NumberCollector = Callable[[ProviderRequest, int, float], Awaitable[tuple[list[int], list[str]]]]
+NumberCollector = Callable[
+    [ProviderRequest, int, float, ProgressReporter | None],
+    Awaitable[tuple[list[int], list[str]]],
+]
 
 
 class TaskRunner:
@@ -31,12 +34,14 @@ class TaskRunner:
         repository: RedisRepository,
         settings: Settings,
         number_collector: NumberCollector = collect_numbers,
+        progress_reporter: ProgressReporter | None = None,
     ):
         """注入仓库、配置和采样函数，使生产采样与测试模拟可以共用同一评分流程。"""
 
         self.repository = repository
         self.settings = settings
         self.number_collector = number_collector
+        self.progress_reporter = progress_reporter
 
     async def run_task(self, task_id: str) -> RunView:
         """运行一次任务采样，并与任务选择的独立参照分布计算相似度。"""
@@ -84,6 +89,7 @@ class TaskRunner:
             request,
             task["sample_count"],
             self.settings.request_delay_seconds,
+            self.progress_reporter,
         )
         completed_at = time.time()
         if len(numbers) < MIN_VALID_SAMPLES:
@@ -161,6 +167,7 @@ class TaskRunner:
             request,
             reference["sample_count"],
             self.settings.request_delay_seconds,
+            self.progress_reporter,
         )
         completed_at = time.time()
         if len(numbers) < MIN_VALID_SAMPLES:

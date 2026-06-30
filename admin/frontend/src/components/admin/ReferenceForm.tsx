@@ -1,6 +1,6 @@
 /** 业务说明：参照配置表单组件，用于录入可单独标定的 AI 基准配置。 */
 import { FormEvent, useState } from "react";
-import { Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
@@ -44,11 +44,12 @@ export function ReferenceForm({ onSubmit }: ReferenceFormProps) {
       <CardTitle>新增参照</CardTitle>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-3 md:grid-cols-2">
-          <Field label="参照名称">
-            <Input value={form.name} required onChange={(event) => setForm({ ...form, name: event.target.value })} />
+          <Field label="参照名称" htmlFor="reference-name">
+            <Input id="reference-name" value={form.name} required onChange={(event) => setForm({ ...form, name: event.target.value })} />
           </Field>
-          <Field label="Provider">
+          <Field label="Provider" htmlFor="reference-provider">
             <Select
+              id="reference-provider"
               value={form.provider}
               onChange={(event) => setForm({ ...form, provider: event.target.value as ReferencePayload["provider"] })}
             >
@@ -56,17 +57,18 @@ export function ReferenceForm({ onSubmit }: ReferenceFormProps) {
               <option value="anthropic">Anthropic</option>
             </Select>
           </Field>
-          <Field label="Base URL">
-            <Input value={form.base_url} required onChange={(event) => setForm({ ...form, base_url: event.target.value })} />
+          <Field label="Base URL" htmlFor="reference-base-url">
+            <Input id="reference-base-url" value={form.base_url} required onChange={(event) => setForm({ ...form, base_url: event.target.value })} />
           </Field>
-          <Field label="API Key">
-            <Input type="password" value={form.api_key ?? ""} required onChange={(event) => setForm({ ...form, api_key: event.target.value })} />
+          <Field label="API Key" htmlFor="reference-api-key">
+            <Input id="reference-api-key" type="password" value={form.api_key ?? ""} required onChange={(event) => setForm({ ...form, api_key: event.target.value })} />
           </Field>
-          <Field label="模型名称">
-            <Input value={form.model} required onChange={(event) => setForm({ ...form, model: event.target.value })} />
+          <Field label="模型名称" htmlFor="reference-model">
+            <Input id="reference-model" value={form.model} required onChange={(event) => setForm({ ...form, model: event.target.value })} />
           </Field>
-          <Field label="标定次数">
+          <Field label="标定次数" htmlFor="reference-sample-count">
             <Input
+              id="reference-sample-count"
               type="number"
               min={10}
               max={500}
@@ -75,11 +77,11 @@ export function ReferenceForm({ onSubmit }: ReferenceFormProps) {
             />
           </Field>
         </div>
-        <Field label="Prompt">
-          <Textarea value={form.prompt} onChange={(event) => setForm({ ...form, prompt: event.target.value })} />
+        <Field label="Prompt" htmlFor="reference-prompt">
+          <Textarea id="reference-prompt" value={form.prompt} onChange={(event) => setForm({ ...form, prompt: event.target.value })} />
         </Field>
-        <Button className="w-full md:w-auto" type="submit" disabled={isSaving}>
-          <Save className="h-4 w-4" />
+        <Button className="w-full md:w-auto" type="submit" disabled={isSaving} aria-busy={isSaving}>
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {isSaving ? "保存中" : "保存参照"}
         </Button>
       </form>
@@ -89,16 +91,16 @@ export function ReferenceForm({ onSubmit }: ReferenceFormProps) {
 
 interface FieldProps {
   label: string;
+  htmlFor: string;
   children: React.ReactNode;
 }
 
 /** 业务说明：包装参照表单字段，保持标定配置录入的业务节奏一致。 */
-function Field({ label, children }: FieldProps) {
+function Field({ label, htmlFor, children }: FieldProps) {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label htmlFor={htmlFor}>{label}</Label>
       {children}
     </div>
   );
 }
-
