@@ -1,7 +1,7 @@
 /** 业务说明：后台登录页组件，在进入任务管理工作台前校验本地管理密钥。 */
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
-import { LockKeyhole, ShieldCheck } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -36,9 +36,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <Card className="relative overflow-hidden p-6">
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-300 via-sky-300 to-amber-300" />
           <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-md border border-teal-400/30 bg-teal-400/10 text-teal-200">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
+            <img
+              className="h-11 w-11 rounded-md object-contain shadow-[0_0_0_1px_rgba(45,212,191,.22)]"
+              src="/codexbuy-logo.png"
+              alt=""
+              aria-hidden="true"
+            />
             <div>
               <div className="text-sm font-semibold text-teal-200">AI Checker Admin</div>
               <h1 className="text-2xl font-bold text-slate-50">后台登录</h1>
@@ -72,4 +75,3 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     </main>
   );
 }
-

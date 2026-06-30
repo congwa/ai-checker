@@ -1,6 +1,6 @@
 /** 业务说明：公开看板主页面，整合公开任务卡片、评分曲线和最新采样分布。 */
 import { motion } from "framer-motion";
-import { RefreshCw, Radar } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { DistributionPanel } from "@/components/public/DistributionPanel";
 import { ScoreTimeline } from "@/components/public/ScoreTimeline";
 import { TaskCards } from "@/components/public/TaskCards";
@@ -18,7 +18,12 @@ export default function App() {
         <motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-4 rounded-lg border border-sky-900/60 bg-slate-950/75 p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-sky-200">
-              <Radar className="h-4 w-4" />
+              <img
+                className="h-8 w-8 rounded-md object-contain shadow-[0_0_0_1px_rgba(56,189,248,.22)]"
+                src="/codexbuy-logo.png"
+                alt=""
+                aria-hidden="true"
+              />
               AI Checker Public
             </div>
           </div>

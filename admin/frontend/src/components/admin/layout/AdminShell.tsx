@@ -1,6 +1,5 @@
 /** 业务说明：后台工作台布局壳，统一桌面侧栏、移动导航和内容容器的操作路径。 */
 import type { ReactNode } from "react";
-import { ShieldCheck } from "lucide-react";
 import { ADMIN_NAV_ITEMS, type AdminSection } from "@/lib/config/navigation";
 
 interface AdminShellProps {
@@ -22,9 +21,12 @@ export function AdminShell({
       <div className="grid min-h-screen lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="border-b border-slate-800 bg-slate-950 px-4 py-4 lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-3 px-2">
-            <div className="grid h-10 w-10 place-items-center rounded-md border border-teal-400/30 bg-teal-400/10 text-teal-200">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
+            <img
+              className="h-10 w-10 rounded-md object-contain shadow-[0_0_0_1px_rgba(45,212,191,.22)]"
+              src="/codexbuy-logo.png"
+              alt=""
+              aria-hidden="true"
+            />
             <div>
               <div className="text-sm font-semibold text-teal-200">AI Checker</div>
               <div className="text-xs text-slate-500">Admin Console</div>
