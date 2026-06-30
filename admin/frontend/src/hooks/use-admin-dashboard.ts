@@ -21,12 +21,12 @@ import type {
   ReferencePayload,
   ReferenceView,
   RunDetail,
-  RunJobKind,
   RunJobView,
   RunView,
   TaskPayload,
   TaskView,
 } from "@/types/domain";
+import { getRunJobTargetKey, isTerminalRunJob } from "@/lib/run-jobs";
 
 type NoticeTone = "success" | "error" | "info";
 
@@ -34,16 +34,6 @@ export interface OperationNotice {
   tone: NoticeTone;
   title: string;
   message: string;
-}
-
-/** 业务说明：判断后台运行 Job 是否已经结束，避免重复轮询已完成的操作。 */
-function isTerminalJob(job: RunJobView) {
-  return job.status === "success" || job.status === "failed";
-}
-
-/** 业务说明：生成 Job 的目标索引，方便参照和任务列表读取自己的行内状态。 */
-function getJobTargetKey(kind: RunJobKind, targetId: string) {
-  return `${kind}:${targetId}`;
 }
 
 /** 业务说明：封装后台工作台状态，避免页面组件直接处理 API 编排和错误恢复。 */
@@ -73,14 +63,14 @@ export function useAdminDashboard(token: string) {
   const runJobByTarget = useMemo(() => {
     const targetMap = new Map<string, RunJobView>();
     for (const job of runJobs) {
-      const key = getJobTargetKey(job.kind, job.target_id);
+      const key = getRunJobTargetKey(job.kind, job.target_id);
       if (!targetMap.has(key)) targetMap.set(key, job);
     }
     return targetMap;
   }, [runJobs]);
 
   const activeRunJobs = useMemo(
-    () => runJobs.filter((job) => !isTerminalJob(job)),
+    () => runJobs.filter((job) => !isTerminalRunJob(job)),
     [runJobs],
   );
 
@@ -162,7 +152,7 @@ export function useAdminDashboard(token: string) {
   /** 业务说明：处理 Job 终态，刷新对应业务数据并给出成功或失败反馈。 */
   const handleTerminalJob = useCallback(
     async (job: RunJobView) => {
-      if (!isTerminalJob(job) || reportedTerminalJobs.current.has(job.id)) return;
+      if (!isTerminalRunJob(job) || reportedTerminalJobs.current.has(job.id)) return;
       reportedTerminalJobs.current.add(job.id);
       if (job.kind === "reference") {
         await refreshReferences();
@@ -197,7 +187,7 @@ export function useAdminDashboard(token: string) {
     try {
       const activeJobs = await fetchActiveRunJobs(token);
       setRunJobs((currentJobs) => {
-        const terminalJobs = currentJobs.filter((job) => isTerminalJob(job));
+        const terminalJobs = currentJobs.filter((job) => isTerminalRunJob(job));
         return [...activeJobs, ...terminalJobs].slice(0, 20);
       });
     } catch (err) {
@@ -279,7 +269,7 @@ export function useAdminDashboard(token: string) {
           title: "参照运行已接收",
           message: job.message ?? "后台已经开始处理参照标定。",
         });
-        if (isTerminalJob(job)) await handleTerminalJob(job);
+        if (isTerminalRunJob(job)) await handleTerminalJob(job);
       } catch (err) {
         showNotice({
           tone: "error",
@@ -334,7 +324,7 @@ export function useAdminDashboard(token: string) {
           title: "任务运行已接收",
           message: job.message ?? "后台已经开始处理任务采样。",
         });
-        if (isTerminalJob(job)) await handleTerminalJob(job);
+        if (isTerminalRunJob(job)) await handleTerminalJob(job);
       } catch (err) {
         showNotice({
           tone: "error",
@@ -413,7 +403,7 @@ export function useAdminDashboard(token: string) {
         void fetchRunJob(token, job.id)
           .then(async (nextJob) => {
             upsertRunJob(nextJob);
-            if (isTerminalJob(nextJob)) await handleTerminalJob(nextJob);
+            if (isTerminalRunJob(nextJob)) await handleTerminalJob(nextJob);
           })
           .catch((err) => {
             showNotice({
@@ -455,3 +445,6 @@ export function useAdminDashboard(token: string) {
     chooseRun,
   };
 }
+
+/** 业务说明：导出工作台状态类型，供分拆后的页面区块共享同一业务数据契约。 */
+export type AdminDashboardState = ReturnType<typeof useAdminDashboard>;

@@ -1,9 +1,10 @@
 /** 业务说明：参照配置表单组件，用于录入可单独标定的 AI 基准配置。 */
 import { FormEvent, useState } from "react";
 import { Save } from "lucide-react";
+import { FormField } from "@/components/admin/forms/FormField";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Input, Label, Textarea } from "@/components/ui/input";
+import { Input, Textarea } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -103,18 +104,5 @@ export function ReferenceForm({ compact = false, onSubmit }: ReferenceFormProps)
   );
 }
 
-interface FieldProps {
-  label: string;
-  htmlFor: string;
-  children: React.ReactNode;
-}
-
 /** 业务说明：包装参照表单字段，保持标定配置录入的业务节奏一致。 */
-function Field({ label, htmlFor, children }: FieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-    </div>
-  );
-}
+const Field = FormField;

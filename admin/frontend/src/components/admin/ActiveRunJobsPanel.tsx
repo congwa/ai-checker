@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusBadge } from "@/components/ui/status";
+import { getRunJobProgress, isActiveRunJob } from "@/lib/run-jobs";
 import { formatDateTime } from "@/lib/utils";
 import type { ReferenceView, RunJobView, TaskView } from "@/types/domain";
 
@@ -14,22 +15,6 @@ interface ActiveRunJobsPanelProps {
   references: ReferenceView[];
   onOpenTask: (taskId: string) => void;
   onOpenReferences: () => void;
-}
-
-/** 业务说明：判断 Job 是否仍需要用户等待，避免成功或失败的历史状态占据运行队列。 */
-function isActiveJob(job: RunJobView) {
-  return job.status === "queued" || job.status === "running";
-}
-
-/** 业务说明：计算 Job 进度百分比，兼容刚排队时总数或当前数还未稳定的状态。 */
-function getJobProgress(job: RunJobView) {
-  const total = Math.max(job.progress_total, 1);
-  const current = Math.min(Math.max(job.progress_current, 0), total);
-  return {
-    total,
-    current,
-    percent: Math.min(100, Math.round((current / total) * 100)),
-  };
 }
 
 /** 业务说明：解析 Job 目标名称，让全局队列能清楚指向正在运行的参照或任务。 */
@@ -50,7 +35,7 @@ export function ActiveRunJobsPanel({
   onOpenTask,
   onOpenReferences,
 }: ActiveRunJobsPanelProps) {
-  const activeJobs = useMemo(() => jobs.filter(isActiveJob), [jobs]);
+  const activeJobs = useMemo(() => jobs.filter(isActiveRunJob), [jobs]);
   const taskMap = useMemo(() => new Map(tasks.map((task) => [task.id, task])), [tasks]);
   const referenceMap = useMemo(
     () => new Map(references.map((reference) => [reference.id, reference])),
@@ -76,7 +61,7 @@ export function ActiveRunJobsPanel({
       <ScrollArea className="mt-3 max-h-[280px] pr-3">
         <div className="grid gap-3 xl:grid-cols-2">
           {activeJobs.map((job) => {
-            const progress = getJobProgress(job);
+            const progress = getRunJobProgress(job);
             const targetName = getJobTargetName(job, taskMap, referenceMap);
 
             return (
