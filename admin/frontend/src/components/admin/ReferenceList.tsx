@@ -1,7 +1,7 @@
 /** 业务说明：参照列表组件，展示参照配置、最新标定状态并提供运行/删除操作。 */
-import { AlertTriangle, CheckCircle2, Clock3, Crosshair, Loader2, Play, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Crosshair, Play, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { StatusBadge, StatusIcon, type StatusKind } from "@/components/ui/status";
 import { formatDateTime } from "@/lib/utils";
 import type { ReferenceView, RunJobView } from "@/types/domain";
 
@@ -31,6 +31,14 @@ function getReferenceStatusLabel(status: ReferenceStatus) {
   return "待运行";
 }
 
+/** 业务说明：把参照业务状态映射到统一状态图标，保证标定页和全局队列语义一致。 */
+function getReferenceStatusKind(status: ReferenceStatus): StatusKind {
+  if (status === "running") return "running";
+  if (status === "calibrated") return "success";
+  if (status === "failed") return "failed";
+  return "pending";
+}
+
 /** 业务说明：确认删除参照，避免误删任务后续需要选择的比较基准。 */
 function confirmDeleteReference(reference: ReferenceView, onDelete: (referenceId: string) => void) {
   if (window.confirm(`确认删除参照「${reference.name}」？已保存的历史运行记录会保留用于审计。`)) {
@@ -41,7 +49,8 @@ function confirmDeleteReference(reference: ReferenceView, onDelete: (referenceId
 /** 业务说明：渲染参照运行进度，帮助用户确认长时间等待仍在推进。 */
 function ReferenceJobProgress({ job }: { job: RunJobView }) {
   const total = Math.max(job.progress_total, 1);
-  const percent = Math.min(100, Math.round((job.progress_current / total) * 100));
+  const current = Math.min(job.progress_current, total);
+  const percent = Math.min(100, Math.round((current / total) * 100));
 
   return (
     <div className="mt-2 space-y-2 text-xs text-slate-300">
@@ -51,7 +60,14 @@ function ReferenceJobProgress({ job }: { job: RunJobView }) {
           {job.success_count} 成功 / {job.failed_count} 失败
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded bg-slate-800">
+      <div
+        className="h-1.5 overflow-hidden rounded bg-slate-800"
+        role="progressbar"
+        aria-label="参照运行进度"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={current}
+      >
         <div className="h-full rounded bg-teal-300 transition-all" style={{ width: `${percent}%` }} />
       </div>
     </div>
@@ -76,7 +92,7 @@ export function ReferenceList({
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-800">
-      <div className="hidden grid-cols-[minmax(220px,1fr)_160px_150px_180px] gap-3 border-b border-slate-800 bg-slate-900/90 px-4 py-3 text-xs font-semibold uppercase text-slate-500 lg:grid">
+      <div className="hidden grid-cols-[minmax(170px,1fr)_118px_120px_150px] gap-3 border-b border-slate-800 bg-slate-900/90 px-4 py-3 text-xs font-semibold uppercase text-slate-500 lg:grid">
         <span>参照</span>
         <span>标定状态</span>
         <span>标定次数</span>
@@ -87,13 +103,11 @@ export function ReferenceList({
         const status = getReferenceStatus(reference, job);
         const isRunning = status === "running";
         const isDeleting = deletingIds.has(reference.id);
-        const StatusIcon =
-          status === "calibrated" ? CheckCircle2 : status === "failed" ? AlertTriangle : Clock3;
 
         return (
           <article
             key={reference.id}
-            className="grid gap-3 border-b border-slate-800 bg-slate-950/60 px-4 py-4 last:border-b-0 hover:bg-slate-900/50 lg:grid-cols-[minmax(220px,1fr)_160px_150px_190px] lg:items-center"
+            className="grid gap-3 border-b border-slate-800 bg-slate-950/60 px-4 py-4 last:border-b-0 hover:bg-slate-900/50 lg:grid-cols-[minmax(170px,1fr)_118px_120px_150px] lg:items-center"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2 truncate text-sm font-semibold text-slate-100">
@@ -108,37 +122,30 @@ export function ReferenceList({
               ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge
-                tone={
-                  status === "calibrated" ? "success" : status === "failed" ? "danger" : "warning"
-                }
-              >
-                <StatusIcon className="mr-1 h-3.5 w-3.5" />
-                {getReferenceStatusLabel(status)}
-              </Badge>
+              <StatusBadge status={getReferenceStatusKind(status)} label={getReferenceStatusLabel(status)} />
             </div>
             <div className="text-xs text-slate-400">
               {reference.sample_count} 次 / {formatDateTime(reference.updated_at)}
             </div>
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Button
-                className="h-8 px-3"
+                className="h-11 px-3 lg:h-8"
                 disabled={isRunning || isDeleting}
                 aria-busy={isRunning}
                 onClick={() => onRun(reference.id)}
               >
-                {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                {isRunning ? <StatusIcon status="running" /> : <Play className="h-4 w-4" />}
                 {isRunning ? "运行中" : status === "failed" ? "重试参照" : "运行参照"}
               </Button>
               <Button
-                className="h-8 w-8 px-0"
+                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
                 variant="danger"
                 disabled={isRunning || isDeleting}
                 aria-label={`删除参照 ${reference.name}`}
                 title={`删除参照 ${reference.name}`}
                 onClick={() => confirmDeleteReference(reference, onDelete)}
               >
-                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                {isDeleting ? <StatusIcon status="running" /> : <Trash2 className="h-4 w-4" />}
               </Button>
             </div>
           </article>

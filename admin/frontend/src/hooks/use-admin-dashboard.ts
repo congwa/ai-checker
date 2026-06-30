@@ -99,6 +99,7 @@ export function useAdminDashboard(token: string) {
     }
   }, []);
 
+  /** 业务说明：刷新参照列表，让参照标定状态和任务基准可用性保持最新。 */
   const refreshReferences = useCallback(async () => {
     if (!token) return;
     setError(null);
@@ -109,6 +110,7 @@ export function useAdminDashboard(token: string) {
     }
   }, [token]);
 
+  /** 业务说明：刷新任务列表，并在首次进入后台时自动选择一个可查看的任务。 */
   const refreshTasks = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
@@ -124,6 +126,7 @@ export function useAdminDashboard(token: string) {
     }
   }, [token]);
 
+  /** 业务说明：刷新当前任务的运行历史，并默认展开最新一次运行详情用于诊断。 */
   const refreshRuns = useCallback(
     async (taskId: string | null) => {
       if (!token || !taskId) {
@@ -197,6 +200,7 @@ export function useAdminDashboard(token: string) {
     }
   }, [showNotice, token]);
 
+  /** 业务说明：保存任务配置，创建和编辑共用同一入口并保留后端密钥续用规则。 */
   const saveTask = useCallback(
     async (payload: TaskPayload, taskId?: string) => {
       setError(null);
@@ -225,6 +229,7 @@ export function useAdminDashboard(token: string) {
     [refreshTasks, showNotice, token],
   );
 
+  /** 业务说明：保存参照配置，成功后刷新列表提醒用户仍需运行标定才能作为基准。 */
   const saveReference = useCallback(
     async (payload: ReferencePayload, referenceId?: string) => {
       setError(null);
@@ -252,6 +257,7 @@ export function useAdminDashboard(token: string) {
     [refreshReferences, showNotice, token],
   );
 
+  /** 业务说明：启动参照后台标定 Job，页面立即进入可轮询状态而不是阻塞等待。 */
   const runReferenceNow = useCallback(
     async (referenceId: string) => {
       setError(null);
@@ -276,6 +282,7 @@ export function useAdminDashboard(token: string) {
     [handleTerminalJob, showNotice, token, upsertRunJob],
   );
 
+  /** 业务说明：删除参照配置，并用删除中状态防止管理员重复点击造成误解。 */
   const removeReference = useCallback(
     async (referenceId: string) => {
       setError(null);
@@ -305,6 +312,7 @@ export function useAdminDashboard(token: string) {
     [refreshReferences, showNotice, token],
   );
 
+  /** 业务说明：启动任务后台采样 Job，让任务列表可持续展示运行进度和结果。 */
   const runNow = useCallback(
     async (taskId: string) => {
       setError(null);
@@ -329,6 +337,7 @@ export function useAdminDashboard(token: string) {
     [handleTerminalJob, showNotice, token, upsertRunJob],
   );
 
+  /** 业务说明：删除任务配置，并同步公开看板依赖状态与当前选中任务。 */
   const removeTask = useCallback(
     async (taskId: string) => {
       setError(null);
@@ -359,6 +368,7 @@ export function useAdminDashboard(token: string) {
     [refreshTasks, selectedTaskId, showNotice, token],
   );
 
+  /** 业务说明：选择某次历史运行详情，用于查看分布图和失败诊断信息。 */
   const chooseRun = useCallback(
     async (runId: string) => {
       if (!selectedTaskId) return;
@@ -413,6 +423,7 @@ export function useAdminDashboard(token: string) {
     references,
     referenceMap,
     runJobs,
+    activeRunJobs,
     runJobByTarget,
     runs,
     selectedTask,

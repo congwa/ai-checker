@@ -1,9 +1,10 @@
 /** 业务说明：管理端任务表单组件，支持创建任务和编辑模型采样配置。 */
 import { FormEvent, useEffect, useState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { StatusIcon } from "@/components/ui/status";
 import type { ReferenceView, TaskPayload, TaskView } from "@/types/domain";
 
 const DEFAULT_PROMPT = "请从1到355之间随机选择一个数字，只输出这个数字，不要有任何其他内容。";
@@ -130,7 +131,7 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
           </label>
         </div>
         <Button className="w-full" type="submit" disabled={isSaving} aria-busy={isSaving}>
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {isSaving ? <StatusIcon status="running" /> : <Save className="h-4 w-4" />}
           {isSaving ? "保存中" : "保存任务"}
         </Button>
       </form>

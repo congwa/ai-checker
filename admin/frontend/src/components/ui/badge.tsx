@@ -2,13 +2,14 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type BadgeTone = "success" | "warning" | "danger" | "neutral";
+export type BadgeTone = "success" | "warning" | "danger" | "neutral" | "info";
 
 const tones: Record<BadgeTone, string> = {
   success: "border-teal-400/30 bg-teal-400/10 text-teal-200",
   warning: "border-amber-400/30 bg-amber-400/10 text-amber-200",
   danger: "border-rose-400/30 bg-rose-400/10 text-rose-200",
   neutral: "border-slate-600 bg-slate-800 text-slate-300",
+  info: "border-sky-400/30 bg-sky-400/10 text-sky-200",
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

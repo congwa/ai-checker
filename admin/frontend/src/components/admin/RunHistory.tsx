@@ -1,6 +1,5 @@
 /** 业务说明：管理端运行历史组件，展示任务采样结果、错误摘要和评分变化。 */
-import { CheckCircle2, XCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge, StatusIcon } from "@/components/ui/status";
 import { formatScore, getRunStatusLabel } from "@/lib/score";
 import { formatDateTime } from "@/lib/utils";
 import type { RunView } from "@/types/domain";
@@ -23,7 +22,7 @@ export function RunHistory({ runs, onSelectRun }: RunHistoryProps) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-                  {run.status === "success" ? <CheckCircle2 className="h-4 w-4 text-teal-300" /> : <XCircle className="h-4 w-4 text-rose-300" />}
+                  <StatusIcon status={run.status === "success" ? "success" : "failed"} />
                   {formatDateTime(run.completed_at)}
                 </div>
                 <div className="mt-1 text-xs text-slate-400">
@@ -32,7 +31,7 @@ export function RunHistory({ runs, onSelectRun }: RunHistoryProps) {
               </div>
               <div className="text-right">
                 <div className="text-xl font-bold text-slate-100">{formatScore(run.smooth_score)}</div>
-                <Badge tone={run.status === "success" ? "success" : "danger"}>{getRunStatusLabel(run.status)}</Badge>
+                <StatusBadge status={run.status === "success" ? "success" : "failed"} label={getRunStatusLabel(run.status)} />
               </div>
             </div>
             {run.error_summary ? <p className="mt-2 text-xs text-amber-200">{run.error_summary}</p> : null}

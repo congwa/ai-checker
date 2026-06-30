@@ -205,7 +205,9 @@ async def test_admin_api_rejects_uncalibrated_reference_when_creating_task() -> 
         app.dependency_overrides.clear()
 
 
-async def test_admin_api_reference_run_job_reports_terminal_status(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_admin_api_reference_run_job_reports_terminal_status(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """参照 Job 接口应立即返回可轮询状态，并在后台完成后保留成功结果。"""
 
     class FakeTaskRunner:

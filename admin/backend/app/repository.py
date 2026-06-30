@@ -613,6 +613,10 @@ class RedisRepository:
     def _decode_reference_dict(self, raw_reference: dict[str, Any]) -> dict[str, Any]:
         """把 Redis Hash 转换为参照业务字典，供 Runner 和 API 复用。"""
 
+        legacy_latest_run_id = raw_reference.get("latest_run_id") or None
+        latest_run_status = raw_reference.get("latest_run_status") or (
+            "success" if legacy_latest_run_id else None
+        )
         return {
             "id": raw_reference["id"],
             "name": raw_reference["name"],
@@ -622,9 +626,10 @@ class RedisRepository:
             "model": raw_reference["model"],
             "prompt": raw_reference["prompt"],
             "sample_count": int(raw_reference["sample_count"]),
-            "latest_run_id": raw_reference.get("latest_run_id") or None,
-            "latest_success_run_id": raw_reference.get("latest_success_run_id") or None,
-            "latest_run_status": raw_reference.get("latest_run_status") or None,
+            "latest_run_id": legacy_latest_run_id,
+            "latest_success_run_id": raw_reference.get("latest_success_run_id")
+            or legacy_latest_run_id,
+            "latest_run_status": latest_run_status,
             "created_at": float(raw_reference["created_at"]),
             "updated_at": float(raw_reference["updated_at"]),
         }

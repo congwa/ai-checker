@@ -1,14 +1,17 @@
 /** 业务说明：参照配置表单组件，用于录入可单独标定的 AI 基准配置。 */
 import { FormEvent, useState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { StatusIcon } from "@/components/ui/status";
+import { cn } from "@/lib/utils";
 import type { ReferencePayload } from "@/types/domain";
 
 const DEFAULT_PROMPT = "请从1到355之间随机选择一个数字，只输出这个数字，不要有任何其他内容。";
 
 interface ReferenceFormProps {
+  compact?: boolean;
   onSubmit: (payload: ReferencePayload) => Promise<void>;
 }
 
@@ -23,7 +26,7 @@ const emptyForm: ReferencePayload = {
 };
 
 /** 业务说明：渲染新增参照表单，保存后用户可手动运行标定生成基准分布。 */
-export function ReferenceForm({ onSubmit }: ReferenceFormProps) {
+export function ReferenceForm({ compact = false, onSubmit }: ReferenceFormProps) {
   const [form, setForm] = useState<ReferencePayload>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -43,7 +46,7 @@ export function ReferenceForm({ onSubmit }: ReferenceFormProps) {
     <Card>
       <CardTitle>新增参照</CardTitle>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className={cn("grid gap-3", compact ? "grid-cols-1" : "md:grid-cols-2")}>
           <Field label="参照名称" htmlFor="reference-name">
             <Input id="reference-name" value={form.name} required onChange={(event) => setForm({ ...form, name: event.target.value })} />
           </Field>
@@ -81,7 +84,7 @@ export function ReferenceForm({ onSubmit }: ReferenceFormProps) {
           <Textarea id="reference-prompt" value={form.prompt} onChange={(event) => setForm({ ...form, prompt: event.target.value })} />
         </Field>
         <Button className="w-full md:w-auto" type="submit" disabled={isSaving} aria-busy={isSaving}>
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {isSaving ? <StatusIcon status="running" /> : <Save className="h-4 w-4" />}
           {isSaving ? "保存中" : "保存参照"}
         </Button>
       </form>

@@ -7,9 +7,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** 业务说明：把后端秒级时间戳转换为后台用户易读的本地时间。 */
-export function formatDateTime(timestamp: number | null | undefined) {
+/** 业务说明：把后端时间转换为后台用户易读的本地时间，异常值用业务兜底文案承接。 */
+export function formatDateTime(timestamp: number | string | null | undefined) {
   if (!timestamp) return "未生成";
-  return new Date(timestamp * 1000).toLocaleString("zh-CN", { hour12: false });
+  const normalizedTime =
+    typeof timestamp === "number"
+      ? timestamp * 1000
+      : Number.isFinite(Number(timestamp))
+        ? Number(timestamp) * 1000
+        : Date.parse(timestamp);
+  if (!Number.isFinite(normalizedTime)) return "未记录";
+  const date = new Date(normalizedTime);
+  if (Number.isNaN(date.getTime())) return "未记录";
+  return date.toLocaleString("zh-CN", { hour12: false });
 }
-

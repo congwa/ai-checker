@@ -1,8 +1,8 @@
 /** 业务说明：管理端任务列表组件，集中展示任务启用状态、公开状态和最新评分。 */
-import { AlertTriangle, FileClock, Loader2, Pencil, Play, Trash2 } from "lucide-react";
+import { FileClock, Pencil, Play, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatusBadge, StatusIcon } from "@/components/ui/status";
 import { formatScore } from "@/lib/score";
 import { cn, formatDateTime } from "@/lib/utils";
 import type { ReferenceView, RunJobView, TaskView } from "@/types/domain";
@@ -30,7 +30,8 @@ function confirmDeleteTask(task: TaskView, onDelete: (taskId: string) => void) {
 /** 业务说明：渲染任务运行进度，帮助管理员确认手动采样没有卡死。 */
 function TaskJobProgress({ job }: { job: RunJobView }) {
   const total = Math.max(job.progress_total, 1);
-  const percent = Math.min(100, Math.round((job.progress_current / total) * 100));
+  const current = Math.min(job.progress_current, total);
+  const percent = Math.min(100, Math.round((current / total) * 100));
 
   return (
     <div className="mt-2 space-y-2 text-xs text-slate-300">
@@ -40,7 +41,14 @@ function TaskJobProgress({ job }: { job: RunJobView }) {
           {job.success_count} 成功 / {job.failed_count} 失败
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded bg-slate-800">
+      <div
+        className="h-1.5 overflow-hidden rounded bg-slate-800"
+        role="progressbar"
+        aria-label="任务运行进度"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={current}
+      >
         <div className="h-full rounded bg-teal-300 transition-all" style={{ width: `${percent}%` }} />
       </div>
     </div>
@@ -115,31 +123,33 @@ export function TaskList({
               {formatScore(task.last_smooth_score)}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge tone={task.enabled ? "success" : "neutral"}>{task.enabled ? "启用" : "停用"}</Badge>
-              <Badge tone={task.public_enabled ? "warning" : "neutral"}>
-                {task.public_enabled ? "公开" : "私有"}
-              </Badge>
+              <StatusBadge status={task.enabled ? "success" : "disabled"} label={task.enabled ? "启用" : "停用"} />
+              <StatusBadge status={task.public_enabled ? "info" : "disabled"} label={task.public_enabled ? "公开" : "私有"} />
               {!referenceReady ? (
-                <Badge tone="danger">
-                  <AlertTriangle className="mr-1 h-3.5 w-3.5" />
-                  参照未就绪
-                </Badge>
+                <StatusBadge status="warning" label="参照未就绪" />
               ) : null}
             </div>
             <div className="text-xs text-slate-400">{formatDateTime(task.next_run_at)}</div>
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Button
-                className="h-8 px-3"
+                className="h-11 px-3 lg:h-8"
+                variant={referenceReady ? "primary" : "secondary"}
                 disabled={isRunning || isDeleting || !referenceReady}
                 aria-busy={isRunning}
                 title={referenceReady ? "运行任务" : "请先成功运行参照"}
                 onClick={() => onRun(task.id)}
               >
-                {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                {isRunning ? "运行中" : "运行"}
+                {isRunning ? (
+                  <StatusIcon status="running" />
+                ) : referenceReady ? (
+                  <Play className="h-4 w-4" />
+                ) : (
+                  <StatusIcon status="warning" />
+                )}
+                {isRunning ? "运行中" : referenceReady ? "运行" : "参照未就绪"}
               </Button>
               <Button
-                className="h-8 w-8 px-0"
+                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
                 variant="secondary"
                 aria-label={`查看任务历史 ${task.name}`}
                 title={`查看任务历史 ${task.name}`}
@@ -148,7 +158,7 @@ export function TaskList({
                 <FileClock className="h-4 w-4" />
               </Button>
               <Button
-                className="h-8 w-8 px-0"
+                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
                 variant="secondary"
                 aria-label={`编辑任务 ${task.name}`}
                 title={`编辑任务 ${task.name}`}
@@ -157,14 +167,14 @@ export function TaskList({
                 <Pencil className="h-4 w-4" />
               </Button>
               <Button
-                className="h-8 w-8 px-0"
+                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
                 variant="danger"
                 disabled={isRunning || isDeleting}
                 aria-label={`删除任务 ${task.name}`}
                 title={`删除任务 ${task.name}`}
                 onClick={() => confirmDeleteTask(task, onDelete)}
               >
-                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                {isDeleting ? <StatusIcon status="running" /> : <Trash2 className="h-4 w-4" />}
               </Button>
             </div>
           </motion.article>
