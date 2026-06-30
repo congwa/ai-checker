@@ -33,8 +33,8 @@ export interface TaskPayload {
   api_key?: string;
   model: string;
   reference_id: string;
-  prompt: string;
-  sample_count: number;
+  prompt?: string;
+  sample_count?: number;
   interval_seconds: number;
   smoothing_level: number;
   enabled: boolean;

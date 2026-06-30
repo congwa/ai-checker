@@ -1,5 +1,6 @@
 /** 业务说明：管理端工作台 Hook，集中编排任务、运行历史、详情和操作反馈状态。 */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   createReferenceRunJob,
   createReference,
@@ -94,6 +95,14 @@ export function useAdminDashboard(token: string) {
   /** 业务说明：根据后台操作结果展示顶部提示，让用户知道刚才动作的结论。 */
   const showNotice = useCallback((nextNotice: OperationNotice) => {
     setNotice(nextNotice);
+    const toastOptions = { description: nextNotice.message };
+    if (nextNotice.tone === "success") {
+      toast.success(nextNotice.title, toastOptions);
+    } else if (nextNotice.tone === "error") {
+      toast.error(nextNotice.title, toastOptions);
+    } else {
+      toast.info(nextNotice.title, toastOptions);
+    }
     if (nextNotice.tone === "error") {
       setError(nextNotice.message);
     }

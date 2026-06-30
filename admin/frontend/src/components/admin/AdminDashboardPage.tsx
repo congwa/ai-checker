@@ -15,7 +15,9 @@ import { RunHistory } from "@/components/admin/RunHistory";
 import { ScoreChart } from "@/components/admin/ScoreChart";
 import { TaskForm } from "@/components/admin/TaskForm";
 import { TaskList } from "@/components/admin/TaskList";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusBadge } from "@/components/ui/status";
 import type { AdminSection } from "@/lib/config/navigation";
 import { formatScore } from "@/lib/score";
@@ -78,12 +80,9 @@ export function AdminDashboardPage({ token, onLogout }: AdminDashboardPageProps)
       {dashboard.notice ? (
         <OperationNoticePanel notice={dashboard.notice} onDismiss={() => dashboard.setNotice(null)} />
       ) : dashboard.error ? (
-        <div
-          className="mt-5 rounded-md border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-100"
-          role="alert"
-        >
-          {dashboard.error}
-        </div>
+        <Alert className="mt-5" variant="destructive" role="alert">
+          <AlertDescription>{dashboard.error}</AlertDescription>
+        </Alert>
       ) : null}
 
       <ActiveRunJobsPanel
@@ -296,12 +295,12 @@ function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProps) {
           )}
         </AdminPanel>
         <AdminPanel title="运行历史">
-          <div className="max-h-[560px] overflow-auto pr-1">
+          <ScrollArea className="h-[min(560px,70vh)] pr-3">
             <RunHistory
               runs={dashboard.runs}
               onSelectRun={dashboard.chooseRun}
             />
-          </div>
+          </ScrollArea>
         </AdminPanel>
       </section>
     </div>

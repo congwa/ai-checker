@@ -16,11 +16,11 @@ export function DistributionPanel({ detail }: DistributionPanelProps) {
   const option = {
     backgroundColor: "transparent",
     tooltip: { trigger: "axis" },
-    grid: { left: 42, right: 18, top: 18, bottom: 48 },
+    grid: { left: 42, right: 18, top: 18, bottom: 64 },
     xAxis: {
       type: "category",
       data: buckets.map((bucket) => bucket.label),
-      axisLabel: { color: "#93c5fd", interval: 2 },
+      axisLabel: { color: "#93c5fd", hideOverlap: true, interval: 4, margin: 14, rotate: 35 },
       axisLine: { lineStyle: { color: "#1e3a5f" } },
     },
     yAxis: {
@@ -63,4 +63,3 @@ function Stat({ label, value }: StatProps) {
     </div>
   );
 }
-

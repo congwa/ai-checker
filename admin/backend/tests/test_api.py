@@ -140,6 +140,60 @@ async def test_admin_api_lists_reference_configs_and_rejects_invalid_task_refere
             assert references.status_code == 200
             assert references.json()[0]["id"] == "reference-1"
 
+            accepted = await client.post(
+                "/api/tasks",
+                headers={"Authorization": "Bearer test-token"},
+                json={
+                    "name": "继承参照协议任务",
+                    "provider": "openai",
+                    "base_url": "https://api.example.com/v1",
+                    "api_key": "secret",
+                    "model": "gpt-test",
+                    "reference_id": "reference-1",
+                },
+            )
+            assert accepted.status_code == 200
+            assert accepted.json()["prompt"] == "number"
+            assert accepted.json()["sample_count"] == 50
+
+            mismatch = await client.post(
+                "/api/tasks",
+                headers={"Authorization": "Bearer test-token"},
+                json={
+                    "name": "题目不一致任务",
+                    "provider": "openai",
+                    "base_url": "https://api.example.com/v1",
+                    "api_key": "secret",
+                    "model": "gpt-test",
+                    "reference_id": "reference-1",
+                    "prompt": "different question",
+                },
+            )
+            assert mismatch.status_code == 400
+            assert (
+                mismatch.json()["detail"]
+                == "任务题目必须与所选参照一致；请修改参照或选择匹配参照"
+            )
+
+            sample_count_mismatch = await client.post(
+                "/api/tasks",
+                headers={"Authorization": "Bearer test-token"},
+                json={
+                    "name": "次数不一致任务",
+                    "provider": "openai",
+                    "base_url": "https://api.example.com/v1",
+                    "api_key": "secret",
+                    "model": "gpt-test",
+                    "reference_id": "reference-1",
+                    "sample_count": 10,
+                },
+            )
+            assert sample_count_mismatch.status_code == 400
+            assert (
+                sample_count_mismatch.json()["detail"]
+                == "任务采样次数必须与所选参照一致；请修改参照或选择匹配参照"
+            )
+
             rejected = await client.post(
                 "/api/tasks",
                 headers={"Authorization": "Bearer test-token"},

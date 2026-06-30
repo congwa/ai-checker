@@ -3,7 +3,14 @@ import { FormEvent, useState } from "react";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { Input, Label, Textarea } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StatusIcon } from "@/components/ui/status";
 import { cn } from "@/lib/utils";
 import type { ReferencePayload } from "@/types/domain";
@@ -52,12 +59,16 @@ export function ReferenceForm({ compact = false, onSubmit }: ReferenceFormProps)
           </Field>
           <Field label="Provider" htmlFor="reference-provider">
             <Select
-              id="reference-provider"
               value={form.provider}
-              onChange={(event) => setForm({ ...form, provider: event.target.value as ReferencePayload["provider"] })}
+              onValueChange={(value) => setForm({ ...form, provider: value as ReferencePayload["provider"] })}
             >
-              <option value="openai">OpenAI</option>
-              <option value="anthropic">Anthropic</option>
+              <SelectTrigger id="reference-provider">
+                <SelectValue placeholder="选择 Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="anthropic">Anthropic</SelectItem>
+              </SelectContent>
             </Select>
           </Field>
           <Field label="Base URL" htmlFor="reference-base-url">

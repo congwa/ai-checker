@@ -1,8 +1,22 @@
 /** 业务说明：管理端任务列表组件，集中展示任务启用状态、公开状态和最新评分。 */
+import type { ReactNode } from "react";
 import { FileClock, Pencil, Play, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { StatusBadge, StatusIcon } from "@/components/ui/status";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatScore } from "@/lib/score";
 import { cn, formatDateTime } from "@/lib/utils";
 import type { ReferenceView, RunJobView, TaskView } from "@/types/domain";
@@ -20,13 +34,6 @@ interface TaskListProps {
   onHistory: (taskId: string) => void;
 }
 
-/** 业务说明：确认删除任务，避免误移除公开看板正在依赖的监控对象。 */
-function confirmDeleteTask(task: TaskView, onDelete: (taskId: string) => void) {
-  if (window.confirm(`确认删除任务「${task.name}」？公开看板将不再展示它。`)) {
-    onDelete(task.id);
-  }
-}
-
 /** 业务说明：渲染任务运行进度，帮助管理员确认手动采样没有卡死。 */
 function TaskJobProgress({ job }: { job: RunJobView }) {
   const total = Math.max(job.progress_total, 1);
@@ -41,17 +48,75 @@ function TaskJobProgress({ job }: { job: RunJobView }) {
           {job.success_count} 成功 / {job.failed_count} 失败
         </span>
       </div>
-      <div
-        className="h-1.5 overflow-hidden rounded bg-slate-800"
-        role="progressbar"
-        aria-label="任务运行进度"
-        aria-valuemin={0}
-        aria-valuemax={total}
-        aria-valuenow={current}
-      >
-        <div className="h-full rounded bg-teal-300 transition-all" style={{ width: `${percent}%` }} />
-      </div>
+      <Progress value={percent} aria-label={`任务运行进度 ${current}/${total}`} />
     </div>
+  );
+}
+
+interface IconActionButtonProps {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}
+
+/** 业务说明：渲染带解释的图标操作，避免后台列表中仅靠图标造成误点或理解成本。 */
+function IconActionButton({ label, onClick, children }: IconActionButtonProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          size="icon"
+          variant="secondary"
+          aria-label={label}
+          onClick={onClick}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+interface DeleteTaskDialogProps {
+  task: TaskView;
+  isDisabled: boolean;
+  isDeleting: boolean;
+  onDelete: (taskId: string) => void;
+}
+
+/** 业务说明：渲染任务删除确认，提醒用户该任务会从公开看板和后台列表中移除。 */
+function DeleteTaskDialog({ task, isDisabled, isDeleting, onDelete }: DeleteTaskDialogProps) {
+  return (
+    <AlertDialog>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <AlertDialogTrigger asChild>
+            <Button
+              size="icon"
+              variant="danger"
+              disabled={isDisabled}
+              aria-label={`删除任务 ${task.name}`}
+            >
+              {isDeleting ? <StatusIcon status="running" /> : <Trash2 className="h-4 w-4" />}
+            </Button>
+          </AlertDialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>删除任务</TooltipContent>
+      </Tooltip>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>删除任务「{task.name}」？</AlertDialogTitle>
+          <AlertDialogDescription>
+            任务配置会被移除，公开看板将不再展示它。历史数据不会作为当前任务继续更新。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogAction onClick={() => onDelete(task.id)}>删除任务</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -132,11 +197,11 @@ export function TaskList({
             <div className="text-xs text-slate-400">{formatDateTime(task.next_run_at)}</div>
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Button
-                className="h-11 px-3 lg:h-8"
+                size="compact"
                 variant={referenceReady ? "primary" : "secondary"}
                 disabled={isRunning || isDeleting || !referenceReady}
                 aria-busy={isRunning}
-                title={referenceReady ? "运行任务" : "请先成功运行参照"}
+                aria-label={referenceReady ? `运行任务 ${task.name}` : `任务 ${task.name} 的参照未就绪`}
                 onClick={() => onRun(task.id)}
               >
                 {isRunning ? (
@@ -148,34 +213,18 @@ export function TaskList({
                 )}
                 {isRunning ? "运行中" : referenceReady ? "运行" : "参照未就绪"}
               </Button>
-              <Button
-                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
-                variant="secondary"
-                aria-label={`查看任务历史 ${task.name}`}
-                title={`查看任务历史 ${task.name}`}
-                onClick={() => onHistory(task.id)}
-              >
+              <IconActionButton label={`查看任务历史 ${task.name}`} onClick={() => onHistory(task.id)}>
                 <FileClock className="h-4 w-4" />
-              </Button>
-              <Button
-                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
-                variant="secondary"
-                aria-label={`编辑任务 ${task.name}`}
-                title={`编辑任务 ${task.name}`}
-                onClick={() => onEdit(task.id)}
-              >
+              </IconActionButton>
+              <IconActionButton label={`编辑任务 ${task.name}`} onClick={() => onEdit(task.id)}>
                 <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
-                variant="danger"
-                disabled={isRunning || isDeleting}
-                aria-label={`删除任务 ${task.name}`}
-                title={`删除任务 ${task.name}`}
-                onClick={() => confirmDeleteTask(task, onDelete)}
-              >
-                {isDeleting ? <StatusIcon status="running" /> : <Trash2 className="h-4 w-4" />}
-              </Button>
+              </IconActionButton>
+              <DeleteTaskDialog
+                task={task}
+                isDisabled={isRunning || isDeleting}
+                isDeleting={isDeleting}
+                onDelete={onDelete}
+              />
             </div>
           </motion.article>
         );

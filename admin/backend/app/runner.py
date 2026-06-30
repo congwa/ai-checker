@@ -8,7 +8,7 @@ from collections.abc import Awaitable, Callable
 
 from app.config import Settings
 from app.fingerprint_algorithm import MIN_VALID_SAMPLES
-from app.models import RunView
+from app.models import ReferenceView, RunView
 from app.provider import ProgressReporter, ProviderRequest, collect_numbers
 from app.repository import RedisRepository
 from app.scoring import (
@@ -73,21 +73,33 @@ class TaskRunner:
             await self.repository.release_task_lock(lock_id, owner)
 
     async def _execute(self, task: dict) -> RunView:
-        """执行采样和评分的核心业务流程，保证成功/失败 run 都能留下可诊断记录。"""
+        """执行采样和评分的核心流程，任务题目和次数始终继承参照测试协议。"""
 
         run_id = str(uuid.uuid4())
         started_at = time.time()
+        reference_id = task.get("reference_id")
+        if not reference_id:
+            raise RuntimeError("任务未选择参照，无法计算相似度")
+        reference = await self.repository.get_reference(reference_id)
+        if not isinstance(reference, ReferenceView):
+            raise RuntimeError("任务参照不存在，请重新选择参照")
+        reference_distribution = await self.repository.get_reference_latest_distribution(
+            reference_id,
+        )
+        if reference_distribution is None:
+            raise RuntimeError("任务参照尚未运行，请先在参照管理中运行参照")
+        sample_count = reference.sample_count
         request = ProviderRequest(
             provider=task["provider"],
             base_url=task["base_url"],
             api_key=decrypt_api_key(task["api_key"], self.settings.secret_key),
             model=task["model"],
-            prompt=task["prompt"],
+            prompt=reference.prompt,
             timeout_seconds=self.settings.provider_timeout_seconds,
         )
         numbers, errors = await self.number_collector(
             request,
-            task["sample_count"],
+            sample_count,
             self.settings.request_delay_seconds,
             self.progress_reporter,
         )
@@ -100,6 +112,7 @@ class TaskRunner:
                 completed_at=completed_at,
                 numbers=numbers,
                 errors=errors,
+                sample_count=sample_count,
             )
             await self.repository.save_run(run, calculate_distribution(numbers), numbers)
             await self.repository.finalize_task_after_run(
@@ -111,14 +124,6 @@ class TaskRunner:
             return run
 
         distribution = calculate_distribution(numbers)
-        reference_id = task.get("reference_id")
-        if not reference_id:
-            raise RuntimeError("任务未选择参照，无法计算相似度")
-        reference_distribution = await self.repository.get_reference_latest_distribution(
-            reference_id,
-        )
-        if reference_distribution is None:
-            raise RuntimeError("任务参照尚未运行，请先在参照管理中运行参照")
         active_baseline_run_id, baseline_distribution = reference_distribution
         raw_score = raw_similarity(distribution, baseline_distribution)
 
@@ -131,7 +136,7 @@ class TaskRunner:
             status="success",
             started_at=started_at,
             completed_at=completed_at,
-            sample_count=task["sample_count"],
+            sample_count=sample_count,
             success_count=len(numbers),
             failed_count=len(errors),
             raw_similarity=raw_score,
@@ -223,8 +228,9 @@ class TaskRunner:
         completed_at: float,
         numbers: list[int],
         errors: list[str],
+        sample_count: int,
     ) -> RunView:
-        """构造失败运行记录，确保采样不足时前台不会误判为有效趋势点。"""
+        """构造失败运行记录，沿用参照采样次数避免任务协议漂移。"""
 
         previous_smooth = task.get("last_smooth_score")
         fallback_score = previous_smooth if previous_smooth is not None else 90.0
@@ -234,9 +240,9 @@ class TaskRunner:
             status="failed",
             started_at=started_at,
             completed_at=completed_at,
-            sample_count=task["sample_count"],
+            sample_count=sample_count,
             success_count=len(numbers),
-            failed_count=max(len(errors), task["sample_count"] - len(numbers)),
+            failed_count=max(len(errors), sample_count - len(numbers)),
             raw_similarity=0.0,
             display_score=90.0,
             smooth_score=fallback_score,

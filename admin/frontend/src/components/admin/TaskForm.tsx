@@ -1,13 +1,21 @@
 /** 业务说明：管理端任务表单组件，支持创建任务和编辑模型采样配置。 */
 import { FormEvent, useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { LockKeyhole, Save } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { Input, Label, Textarea } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { StatusIcon } from "@/components/ui/status";
+import { Switch } from "@/components/ui/switch";
 import type { ReferenceView, TaskPayload, TaskView } from "@/types/domain";
-
-const DEFAULT_PROMPT = "请从1到355之间随机选择一个数字，只输出这个数字，不要有任何其他内容。";
 
 interface TaskFormProps {
   task: TaskView | null;
@@ -22,8 +30,6 @@ const emptyForm: TaskPayload = {
   api_key: "",
   model: "",
   reference_id: "",
-  prompt: DEFAULT_PROMPT,
-  sample_count: 50,
   interval_seconds: 3600,
   smoothing_level: 65,
   enabled: true,
@@ -34,6 +40,9 @@ const emptyForm: TaskPayload = {
 export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
   const [form, setForm] = useState<TaskPayload>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const selectedReference =
+    references.find((reference) => reference.id === form.reference_id) ?? null;
 
   useEffect(() => {
     if (!task) {
@@ -47,8 +56,6 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
       api_key: "",
       model: task.model,
       reference_id: task.reference_id ?? "",
-      prompt: task.prompt,
-      sample_count: task.sample_count,
       interval_seconds: task.interval_seconds,
       smoothing_level: task.smoothing_level,
       enabled: task.enabled,
@@ -59,7 +66,12 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
   /** 业务说明：提交任务配置，按创建或更新场景调用上层工作台业务动作。 */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!form.reference_id) {
+      setFormError("请选择一个已成功标定的参照，任务会自动继承它的题目和采样次数。");
+      return;
+    }
     setIsSaving(true);
+    setFormError(null);
     try {
       await onSubmit(form, task?.id);
       if (!task) setForm(emptyForm);
@@ -77,9 +89,17 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
             <Input id="task-name" value={form.name} required onChange={(event) => setForm({ ...form, name: event.target.value })} />
           </Field>
           <Field label="Provider" htmlFor="task-provider">
-            <Select id="task-provider" value={form.provider} onChange={(event) => setForm({ ...form, provider: event.target.value as TaskPayload["provider"] })}>
-              <option value="openai">OpenAI</option>
-              <option value="anthropic">Anthropic</option>
+            <Select
+              value={form.provider}
+              onValueChange={(value) => setForm({ ...form, provider: value as TaskPayload["provider"] })}
+            >
+              <SelectTrigger id="task-provider">
+                <SelectValue placeholder="选择 Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="anthropic">Anthropic</SelectItem>
+              </SelectContent>
             </Select>
           </Field>
           <Field label="Base URL" htmlFor="task-base-url">
@@ -93,42 +113,58 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
           </Field>
           <Field label="选择参照" htmlFor="task-reference">
             <Select
-              id="task-reference"
-              required
               value={form.reference_id}
-              onChange={(event) => setForm({ ...form, reference_id: event.target.value })}
+              onValueChange={(value) => {
+                setForm({ ...form, reference_id: value });
+                setFormError(null);
+              }}
             >
-              <option value="">请选择已成功标定的参照</option>
-              {references.map((reference) => (
-                <option key={reference.id} value={reference.id} disabled={!reference.latest_success_run_id}>
-                  {reference.name} / {reference.model}
-                  {reference.latest_success_run_id ? "" : "（未成功标定）"}
-                </option>
-              ))}
+              <SelectTrigger id="task-reference" aria-invalid={Boolean(formError)}>
+                <SelectValue placeholder="请选择已成功标定的参照" />
+              </SelectTrigger>
+              <SelectContent>
+                {references.map((reference) => (
+                  <SelectItem key={reference.id} value={reference.id} disabled={!reference.latest_success_run_id}>
+                    {reference.name} / {reference.model}
+                    {reference.latest_success_run_id ? "" : "（未成功标定）"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-          </Field>
-          <Field label="采样次数" htmlFor="task-sample-count">
-            <Input id="task-sample-count" type="number" min={10} max={500} value={form.sample_count} onChange={(event) => setForm({ ...form, sample_count: Number(event.target.value) })} />
           </Field>
           <Field label="间隔秒数" htmlFor="task-interval-seconds">
             <Input id="task-interval-seconds" type="number" min={60} value={form.interval_seconds} onChange={(event) => setForm({ ...form, interval_seconds: Number(event.target.value) })} />
           </Field>
           <Field label={`平滑度 ${form.smoothing_level}`} htmlFor="task-smoothing-level">
-            <Input id="task-smoothing-level" type="range" min={0} max={100} value={form.smoothing_level} onChange={(event) => setForm({ ...form, smoothing_level: Number(event.target.value) })} />
+            <Slider
+              id="task-smoothing-level"
+              min={0}
+              max={100}
+              step={1}
+              value={[form.smoothing_level]}
+              onValueChange={([value]) => setForm({ ...form, smoothing_level: value })}
+            />
           </Field>
         </div>
-        <Field label="Prompt" htmlFor="task-prompt">
-          <Textarea id="task-prompt" value={form.prompt} onChange={(event) => setForm({ ...form, prompt: event.target.value })} />
-        </Field>
-        <div className="flex flex-wrap gap-4 text-sm text-slate-300">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={form.enabled} onChange={(event) => setForm({ ...form, enabled: event.target.checked })} />
-            启用调度
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={form.public_enabled} onChange={(event) => setForm({ ...form, public_enabled: event.target.checked })} />
-            公开展示
-          </label>
+        <ReferenceProtocolPreview reference={selectedReference} />
+        {formError ? (
+          <Alert variant="destructive" role="alert">
+            <AlertDescription>{formError}</AlertDescription>
+          </Alert>
+        ) : null}
+        <div className="grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+          <SwitchField
+            id="task-enabled"
+            label="启用调度"
+            checked={form.enabled}
+            onCheckedChange={(checked) => setForm({ ...form, enabled: checked })}
+          />
+          <SwitchField
+            id="task-public-enabled"
+            label="公开展示"
+            checked={form.public_enabled}
+            onCheckedChange={(checked) => setForm({ ...form, public_enabled: checked })}
+          />
         </div>
         <Button className="w-full" type="submit" disabled={isSaving} aria-busy={isSaving}>
           {isSaving ? <StatusIcon status="running" /> : <Save className="h-4 w-4" />}
@@ -136,6 +172,23 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
         </Button>
       </form>
     </Card>
+  );
+}
+
+interface SwitchFieldProps {
+  id: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+/** 业务说明：渲染任务二元开关，让调度和公开状态在创建时即可被明确控制。 */
+function SwitchField({ id, label, checked, onCheckedChange }: SwitchFieldProps) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-slate-800 bg-slate-900/50 p-3">
+      <Label htmlFor={id}>{label}</Label>
+      <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
+    </div>
   );
 }
 
@@ -151,6 +204,51 @@ function Field({ label, htmlFor, children }: FieldProps) {
     <div className="space-y-2">
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
+    </div>
+  );
+}
+
+interface ReferenceProtocolPreviewProps {
+  reference: ReferenceView | null;
+}
+
+/** 业务说明：展示所选参照的测试协议，提醒任务只继承题目和采样次数而不单独编辑。 */
+function ReferenceProtocolPreview({ reference }: ReferenceProtocolPreviewProps) {
+  return (
+    <div className="rounded-md border border-slate-800 bg-slate-900/50 p-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2 font-semibold text-slate-100">
+        <LockKeyhole className="h-4 w-4 text-teal-300" />
+        测试协议随参照带入
+        <span className="rounded border border-teal-400/20 bg-teal-400/10 px-2 py-0.5 text-xs text-teal-200">
+          不可在任务中修改
+        </span>
+      </div>
+      {reference ? (
+        <div className="mt-3 grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
+          <Field label="采样次数" htmlFor="task-reference-sample-count">
+            <Input
+              id="task-reference-sample-count"
+              value={`${reference.sample_count} 次`}
+              readOnly
+              aria-readonly="true"
+              className="cursor-not-allowed border-slate-800 bg-slate-950/70 text-slate-300"
+            />
+          </Field>
+          <Field label="题目" htmlFor="task-reference-prompt">
+            <Textarea
+              id="task-reference-prompt"
+              value={reference.prompt}
+              readOnly
+              aria-readonly="true"
+              className="min-h-20 cursor-not-allowed resize-none border-slate-800 bg-slate-950/70 text-slate-300"
+            />
+          </Field>
+        </div>
+      ) : (
+        <div className="mt-2 text-slate-400">
+          请选择一个已成功标定的参照，任务会自动使用它的题目和采样次数。
+        </div>
+      )}
     </div>
   );
 }

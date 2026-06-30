@@ -2,6 +2,8 @@
 import { useMemo } from "react";
 import { Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusBadge } from "@/components/ui/status";
 import { formatDateTime } from "@/lib/utils";
 import type { ReferenceView, RunJobView, TaskView } from "@/types/domain";
@@ -71,64 +73,54 @@ export function ActiveRunJobsPanel({
         <div className="text-xs text-slate-400">{activeJobs.length} 个操作正在等待结果</div>
       </div>
 
-      <div className="mt-3 grid max-h-[280px] gap-3 overflow-auto pr-1 xl:grid-cols-2">
-        {activeJobs.map((job) => {
-          const progress = getJobProgress(job);
-          const targetName = getJobTargetName(job, taskMap, referenceMap);
+      <ScrollArea className="mt-3 max-h-[280px] pr-3">
+        <div className="grid gap-3 xl:grid-cols-2">
+          {activeJobs.map((job) => {
+            const progress = getJobProgress(job);
+            const targetName = getJobTargetName(job, taskMap, referenceMap);
 
-          return (
-            <article key={job.id} className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={job.status === "queued" ? "queued" : "running"} />
-                    <span className="text-xs text-slate-400">
-                      {job.kind === "reference" ? "参照标定" : "任务采样"}
+            return (
+              <article key={job.id} className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge status={job.status === "queued" ? "queued" : "running"} />
+                      <span className="text-xs text-slate-400">
+                        {job.kind === "reference" ? "参照标定" : "任务采样"}
+                      </span>
+                    </div>
+                    <div className="mt-2 truncate text-sm font-semibold text-slate-100">{targetName}</div>
+                    <div className="mt-1 text-xs text-slate-400">
+                      {job.message ?? "后台已接收，正在等待最新进度"}
+                    </div>
+                  </div>
+
+                  <Button
+                    size="compact"
+                    variant="secondary"
+                    onClick={() => (job.kind === "reference" ? onOpenReferences() : onOpenTask(job.target_id))}
+                  >
+                    查看
+                  </Button>
+                </div>
+
+                <div className="mt-3 space-y-2 text-xs text-slate-300">
+                  <div className="flex items-center justify-between gap-3">
+                    <span>
+                      {progress.current}/{progress.total}
+                    </span>
+                    <span className="text-slate-400">
+                      {job.success_count} 成功 / {job.failed_count} 失败
                     </span>
                   </div>
-                  <div className="mt-2 truncate text-sm font-semibold text-slate-100">{targetName}</div>
-                  <div className="mt-1 text-xs text-slate-400">
-                    {job.message ?? "后台已接收，正在等待最新进度"}
-                  </div>
+                  <Progress value={progress.percent} aria-label={`${targetName} 运行进度`} />
+                  <div className="text-slate-500">最近更新：{formatDateTime(job.updated_at)}</div>
                 </div>
-
-                <Button
-                  className="h-11 px-3 lg:h-8"
-                  variant="secondary"
-                  onClick={() => (job.kind === "reference" ? onOpenReferences() : onOpenTask(job.target_id))}
-                >
-                  查看
-                </Button>
-              </div>
-
-              <div className="mt-3 space-y-2 text-xs text-slate-300">
-                <div className="flex items-center justify-between gap-3">
-                  <span>
-                    {progress.current}/{progress.total}
-                  </span>
-                  <span className="text-slate-400">
-                    {job.success_count} 成功 / {job.failed_count} 失败
-                  </span>
-                </div>
-                <div
-                  className="h-1.5 overflow-hidden rounded bg-slate-800"
-                  role="progressbar"
-                  aria-label={`${targetName} 运行进度`}
-                  aria-valuemin={0}
-                  aria-valuemax={progress.total}
-                  aria-valuenow={progress.current}
-                >
-                  <div
-                    className="h-full rounded bg-teal-300 transition-all"
-                    style={{ width: `${progress.percent}%` }}
-                  />
-                </div>
-                <div className="text-slate-500">最近更新：{formatDateTime(job.updated_at)}</div>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+              </article>
+            );
+          })}
+        </div>
+      </ScrollArea>
     </section>
   );
 }

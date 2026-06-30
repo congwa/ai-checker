@@ -88,9 +88,10 @@ async def create_task(
     repository: RedisRepository = Depends(get_repository),
     settings: Settings = Depends(get_runtime_settings),
 ) -> TaskView:
-    """创建新的 AI 监控任务，并校验用户显式选择的参照基准。"""
+    """创建新的 AI 监控任务，并绑定所选参照的测试题目和采样规则。"""
 
-    await _validate_reference(repository, payload.reference_id)
+    reference = await _validate_reference(repository, payload.reference_id)
+    payload = _bind_task_create_to_reference(payload, reference)
     encrypted_api_key = encrypt_api_key(payload.api_key, settings.secret_key)
     return await repository.create_task(payload, encrypted_api_key)
 
@@ -272,10 +273,18 @@ async def update_task(
     repository: RedisRepository = Depends(get_repository),
     settings: Settings = Depends(get_runtime_settings),
 ) -> TaskView:
-    """更新任务配置；API Key 为空沿用旧密钥，参照字段必须指向独立参照配置。"""
+    """更新任务配置；测试题目和采样次数始终跟随所选参照，不能单独漂移。"""
 
-    if payload.reference_id is not None:
-        await _validate_reference(repository, payload.reference_id)
+    current_task = await repository.get_task(task_id)
+    if not isinstance(current_task, TaskView):
+        raise HTTPException(status_code=404, detail="任务不存在")
+    reference_id = (
+        payload.reference_id if payload.reference_id is not None else current_task.reference_id
+    )
+    if reference_id is None:
+        raise HTTPException(status_code=400, detail="任务未选择参照")
+    reference = await _validate_reference(repository, reference_id)
+    payload = _bind_task_update_to_reference(payload, reference)
     encrypted_api_key = (
         encrypt_api_key(payload.api_key, settings.secret_key) if payload.api_key else None
     )
@@ -331,11 +340,11 @@ async def create_task_run_job(
         raise HTTPException(status_code=404, detail="任务不存在")
     if not task.reference_id:
         raise HTTPException(status_code=400, detail="任务未选择参照")
-    await _validate_reference(repository, task.reference_id)
+    reference = await _validate_reference(repository, task.reference_id)
     job, created = await repository.create_or_get_run_job(
         "task",
         task_id,
-        task.sample_count,
+        reference.sample_count,
         "任务运行已排队，等待后台开始采样",
     )
     if created:
@@ -480,11 +489,58 @@ async def _run_task_job(
     )
 
 
-async def _validate_reference(repository: RedisRepository, reference_id: str) -> None:
-    """校验任务选择的参照已成功标定，避免任务使用不可用的比较基准。"""
+async def _validate_reference(repository: RedisRepository, reference_id: str) -> ReferenceView:
+    """校验任务选择的参照已成功标定，并返回其测试协议供任务继承。"""
 
     reference = await repository.get_reference(reference_id)
     if not isinstance(reference, ReferenceView):
         raise HTTPException(status_code=400, detail="请选择有效参照")
     if not reference.latest_success_run_id:
         raise HTTPException(status_code=400, detail="请先成功运行参照，再把它作为任务基准")
+    return reference
+
+
+def _bind_task_create_to_reference(payload: TaskCreate, reference: ReferenceView) -> TaskCreate:
+    """把任务创建输入绑定到参照测试协议，确保新任务与基准可统计比较。"""
+
+    _assert_task_protocol_matches_reference(payload, reference)
+    data = payload.model_dump()
+    data["prompt"] = reference.prompt
+    data["sample_count"] = reference.sample_count
+    return TaskCreate(**data)
+
+
+def _bind_task_update_to_reference(payload: TaskUpdate, reference: ReferenceView) -> TaskUpdate:
+    """把任务更新输入绑定到参照测试协议，防止编辑任务时题目或次数独立漂移。"""
+
+    _assert_task_protocol_matches_reference(payload, reference)
+    data = payload.model_dump(exclude_unset=True)
+    data["prompt"] = reference.prompt
+    data["sample_count"] = reference.sample_count
+    return TaskUpdate(**data)
+
+
+def _assert_task_protocol_matches_reference(
+    payload: TaskCreate | TaskUpdate,
+    reference: ReferenceView,
+) -> None:
+    """校验外部调用者显式传入的任务测试协议必须与所选参照完全一致。"""
+
+    if (
+        "prompt" in payload.model_fields_set
+        and payload.prompt is not None
+        and payload.prompt.strip() != reference.prompt.strip()
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="任务题目必须与所选参照一致；请修改参照或选择匹配参照",
+        )
+    if (
+        "sample_count" in payload.model_fields_set
+        and payload.sample_count is not None
+        and payload.sample_count != reference.sample_count
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="任务采样次数必须与所选参照一致；请修改参照或选择匹配参照",
+        )

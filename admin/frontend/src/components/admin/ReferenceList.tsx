@@ -1,7 +1,20 @@
 /** 业务说明：参照列表组件，展示参照配置、最新标定状态并提供运行/删除操作。 */
 import { Crosshair, Play, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { StatusBadge, StatusIcon, type StatusKind } from "@/components/ui/status";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDateTime } from "@/lib/utils";
 import type { ReferenceView, RunJobView } from "@/types/domain";
 
@@ -39,13 +52,6 @@ function getReferenceStatusKind(status: ReferenceStatus): StatusKind {
   return "pending";
 }
 
-/** 业务说明：确认删除参照，避免误删任务后续需要选择的比较基准。 */
-function confirmDeleteReference(reference: ReferenceView, onDelete: (referenceId: string) => void) {
-  if (window.confirm(`确认删除参照「${reference.name}」？已保存的历史运行记录会保留用于审计。`)) {
-    onDelete(reference.id);
-  }
-}
-
 /** 业务说明：渲染参照运行进度，帮助用户确认长时间等待仍在推进。 */
 function ReferenceJobProgress({ job }: { job: RunJobView }) {
   const total = Math.max(job.progress_total, 1);
@@ -60,17 +66,55 @@ function ReferenceJobProgress({ job }: { job: RunJobView }) {
           {job.success_count} 成功 / {job.failed_count} 失败
         </span>
       </div>
-      <div
-        className="h-1.5 overflow-hidden rounded bg-slate-800"
-        role="progressbar"
-        aria-label="参照运行进度"
-        aria-valuemin={0}
-        aria-valuemax={total}
-        aria-valuenow={current}
-      >
-        <div className="h-full rounded bg-teal-300 transition-all" style={{ width: `${percent}%` }} />
-      </div>
+      <Progress value={percent} aria-label={`参照运行进度 ${current}/${total}`} />
     </div>
+  );
+}
+
+interface DeleteReferenceDialogProps {
+  reference: ReferenceView;
+  isDisabled: boolean;
+  isDeleting: boolean;
+  onDelete: (referenceId: string) => void;
+}
+
+/** 业务说明：渲染参照删除确认，明确历史记录保留但该参照不再能作为新任务基准。 */
+function DeleteReferenceDialog({
+  reference,
+  isDisabled,
+  isDeleting,
+  onDelete,
+}: DeleteReferenceDialogProps) {
+  return (
+    <AlertDialog>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <AlertDialogTrigger asChild>
+            <Button
+              size="icon"
+              variant="danger"
+              disabled={isDisabled}
+              aria-label={`删除参照 ${reference.name}`}
+            >
+              {isDeleting ? <StatusIcon status="running" /> : <Trash2 className="h-4 w-4" />}
+            </Button>
+          </AlertDialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>删除参照</TooltipContent>
+      </Tooltip>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>删除参照「{reference.name}」？</AlertDialogTitle>
+          <AlertDialogDescription>
+            参照配置会被移除，已保存的历史运行记录仍保留用于审计。依赖它的新任务需要重新选择可用基准。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogAction onClick={() => onDelete(reference.id)}>删除参照</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -129,7 +173,7 @@ export function ReferenceList({
             </div>
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Button
-                className="h-11 px-3 lg:h-8"
+                size="compact"
                 disabled={isRunning || isDeleting}
                 aria-busy={isRunning}
                 onClick={() => onRun(reference.id)}
@@ -137,16 +181,12 @@ export function ReferenceList({
                 {isRunning ? <StatusIcon status="running" /> : <Play className="h-4 w-4" />}
                 {isRunning ? "运行中" : status === "failed" ? "重试参照" : "运行参照"}
               </Button>
-              <Button
-                className="h-11 w-11 px-0 lg:h-8 lg:w-8"
-                variant="danger"
-                disabled={isRunning || isDeleting}
-                aria-label={`删除参照 ${reference.name}`}
-                title={`删除参照 ${reference.name}`}
-                onClick={() => confirmDeleteReference(reference, onDelete)}
-              >
-                {isDeleting ? <StatusIcon status="running" /> : <Trash2 className="h-4 w-4" />}
-              </Button>
+              <DeleteReferenceDialog
+                reference={reference}
+                isDisabled={isRunning || isDeleting}
+                isDeleting={isDeleting}
+                onDelete={onDelete}
+              />
             </div>
           </article>
         );

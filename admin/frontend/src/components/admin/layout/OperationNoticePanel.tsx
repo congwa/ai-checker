@@ -1,5 +1,6 @@
 /** 业务说明：后台操作反馈组件，统一展示保存、运行、删除等动作的成功或失败结论。 */
 import { X } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StatusIcon, type StatusKind } from "@/components/ui/status";
 import type { OperationNotice } from "@/hooks/use-admin-dashboard";
 
@@ -12,23 +13,19 @@ interface OperationNoticePanelProps {
 export function OperationNoticePanel({ notice, onDismiss }: OperationNoticePanelProps) {
   const status: StatusKind =
     notice.tone === "success" ? "success" : notice.tone === "error" ? "failed" : "info";
-  const toneClass =
-    notice.tone === "success"
-      ? "border-teal-400/30 bg-teal-400/10 text-teal-100"
-      : notice.tone === "error"
-        ? "border-rose-400/30 bg-rose-400/10 text-rose-100"
-        : "border-sky-400/30 bg-sky-400/10 text-sky-100";
+  const variant = notice.tone === "success" ? "success" : notice.tone === "error" ? "destructive" : "default";
 
   return (
-    <div
-      className={`mt-5 flex items-start gap-3 rounded-md border p-3 text-sm ${toneClass}`}
+    <Alert
+      variant={variant}
+      className="mt-5 flex items-start gap-3"
       role={notice.tone === "error" ? "alert" : "status"}
       aria-live="polite"
     >
       <StatusIcon status={status} className="mt-0.5 shrink-0" />
       <div className="min-w-0 flex-1">
-        <div className="font-semibold">{notice.title}</div>
-        <div className="mt-1 text-slate-200/90">{notice.message}</div>
+        <AlertTitle>{notice.title}</AlertTitle>
+        <AlertDescription>{notice.message}</AlertDescription>
       </div>
       <button
         type="button"
@@ -38,6 +35,6 @@ export function OperationNoticePanel({ notice, onDismiss }: OperationNoticePanel
       >
         <X className="h-4 w-4" />
       </button>
-    </div>
+    </Alert>
   );
 }

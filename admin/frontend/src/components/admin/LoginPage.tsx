@@ -2,6 +2,7 @@
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { LockKeyhole } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -61,9 +62,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               />
             </div>
             {error ? (
-              <div className="rounded-md border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-100">
-                {error}
-              </div>
+              <Alert variant="destructive" role="alert">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             ) : null}
             <Button className="w-full" type="submit">
               <LockKeyhole className="h-4 w-4" />

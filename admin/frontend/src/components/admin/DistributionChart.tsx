@@ -16,11 +16,11 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
   const option = {
     backgroundColor: "transparent",
     tooltip: { trigger: "axis" },
-    grid: { left: 42, right: 18, top: 20, bottom: 48 },
+    grid: { left: 42, right: 18, top: 20, bottom: 64 },
     xAxis: {
       type: "category",
       data: labels,
-      axisLabel: { color: "#94a3b8", interval: 2 },
+      axisLabel: { color: "#94a3b8", hideOverlap: true, interval: 4, margin: 14, rotate: 35 },
       axisLine: { lineStyle: { color: "#334155" } },
     },
     yAxis: {
@@ -39,4 +39,3 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
   };
   return <ReactECharts option={option} style={{ height: 260, width: "100%" }} />;
 }
-

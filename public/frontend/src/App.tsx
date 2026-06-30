@@ -5,6 +5,7 @@ import { DistributionPanel } from "@/components/public/DistributionPanel";
 import { ScoreTimeline } from "@/components/public/ScoreTimeline";
 import { TaskCards } from "@/components/public/TaskCards";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { formatDateTime, formatScore } from "@/lib/utils";
 import { usePublicDashboard } from "@/hooks/use-public-dashboard";
@@ -27,10 +28,10 @@ export default function App() {
               AI Checker Public
             </div>
           </div>
-          <button className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-sky-800 bg-sky-400/10 px-4 text-sm font-semibold text-sky-100 transition hover:bg-sky-400/20 disabled:opacity-50" disabled={dashboard.isLoading} onClick={dashboard.refreshOverview}>
+          <Button disabled={dashboard.isLoading} aria-busy={dashboard.isLoading} onClick={dashboard.refreshOverview}>
             <RefreshCw className="h-4 w-4" />
-            刷新
-          </button>
+            {dashboard.isLoading ? "刷新中" : "刷新"}
+          </Button>
         </motion.header>
 
         {dashboard.error ? <div className="rounded-md border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-100">{dashboard.error}</div> : null}
