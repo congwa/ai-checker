@@ -1,4 +1,4 @@
-/** 业务说明：公开任务卡片组件，展示每个公开任务的最新平滑分和运行状态。 */
+/** 业务说明：公开任务卡片组件，展示每个公开任务的最新相似度评分和运行状态。 */
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ interface TaskCardsProps {
   onSelect: (taskId: string) => void;
 }
 
-/** 业务说明：渲染公开任务列表，点击任务后展示对应曲线和分布。 */
+/** 业务说明：渲染公开任务列表，点击任务后展示对应评分曲线。 */
 export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
   if (tasks.length === 0) {
     return <div className="rounded-lg border border-dashed border-slate-700 p-8 text-sm text-slate-400">暂无公开任务</div>;
@@ -54,4 +54,3 @@ export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-/** 业务说明：公开评分曲线组件，展示公开任务平滑分与展示分的时间趋势。 */
+/** 业务说明：公开评分曲线组件，展示公开任务相似度评分时间趋势。 */
 import ReactECharts from "echarts-for-react";
 import { toPublicScoreSeries } from "@/lib/series";
 import type { SeriesPoint } from "@/types/domain";
@@ -29,25 +29,15 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
     },
     series: [
       {
-        name: "平滑分",
+        name: "相似度评分",
         type: "line",
         smooth: true,
-        data: series.map((point) => point.smooth),
+        data: series.map((point) => point.score),
         symbolSize: 7,
         lineStyle: { width: 3, color: "#2dd4bf" },
         itemStyle: { color: "#2dd4bf" },
-      },
-      {
-        name: "展示分",
-        type: "line",
-        smooth: true,
-        data: series.map((point) => point.display),
-        symbolSize: 5,
-        lineStyle: { width: 2, color: "#38bdf8" },
-        itemStyle: { color: "#38bdf8" },
       },
     ],
   };
   return <ReactECharts option={option} style={{ height: 320, width: "100%" }} />;
 }
-

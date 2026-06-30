@@ -1,4 +1,4 @@
-/** 业务说明：任务历史页面区块，承载选中任务的曲线、分布和运行记录诊断。 */
+/** 业务说明：任务历史页面区块，承载选中任务的评分看板、分布和运行记录诊断。 */
 import { DistributionChart } from "@/components/admin/DistributionChart";
 import { AdminPanel } from "@/components/admin/layout/AdminPanel";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -16,7 +16,7 @@ interface TaskHistorySectionProps {
   onEdit: (taskId: string) => void;
 }
 
-/** 业务说明：渲染后台任务历史页，围绕选中任务展示曲线、分布和运行记录。 */
+/** 业务说明：渲染后台任务历史页，围绕选中任务展示评分看板、分布和运行记录。 */
 export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProps) {
   if (!dashboard.selectedTask) {
     return (
@@ -30,7 +30,7 @@ export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProp
     <div className="space-y-5">
       <section className="grid gap-5 md:grid-cols-3">
         <MetricCard
-          title="平滑分"
+          title="相似度评分"
           value={formatScore(dashboard.selectedTask.last_smooth_score)}
           tone="text-teal-200"
         />
@@ -50,20 +50,27 @@ export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProp
         />
       </section>
 
-      <AdminPanel
-        title={dashboard.selectedTask.name}
-        description={dashboard.selectedTask.model}
-        action={
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge status={dashboard.selectedTask.enabled ? "success" : "disabled"} label={dashboard.selectedTask.enabled ? "调度中" : "已停用"} />
-            <Button variant="secondary" onClick={() => onEdit(dashboard.selectedTask!.id)}>
-              编辑任务
-            </Button>
-          </div>
-        }
-      >
-        <ScoreChart runs={dashboard.runs} />
-      </AdminPanel>
+      <section className="flex flex-col gap-3 rounded-lg border border-slate-800/80 px-4 py-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-100">{dashboard.selectedTask.name}</h2>
+          <div className="mt-1 text-sm text-slate-400">{dashboard.selectedTask.model}</div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge status={dashboard.selectedTask.enabled ? "success" : "disabled"} label={dashboard.selectedTask.enabled ? "调度中" : "已停用"} />
+          <Button variant="secondary" onClick={() => onEdit(dashboard.selectedTask!.id)}>
+            编辑任务
+          </Button>
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-2">
+        <AdminPanel title="真实结果" description="单次运行即时结果，不做平滑处理。">
+          <ScoreChart runs={dashboard.runs} variant="actual" />
+        </AdminPanel>
+        <AdminPanel title="前台展示结果" description="公开页实际展示的相似度评分，受平滑度配置影响。">
+          <ScoreChart runs={dashboard.runs} variant="public" />
+        </AdminPanel>
+      </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
         <AdminPanel title="采样分布">

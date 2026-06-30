@@ -1,4 +1,4 @@
-/** 业务说明：后台指标卡组件，展示当前任务的平滑分、下次运行和参照状态。 */
+/** 业务说明：后台指标卡组件，展示当前任务的相似度评分、下次运行和参照状态。 */
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";

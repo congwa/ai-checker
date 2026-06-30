@@ -13,9 +13,8 @@ export function formatDateTime(timestamp: number | null | undefined) {
   return new Date(timestamp * 1000).toLocaleString("zh-CN", { hour12: false });
 }
 
-/** 业务说明：格式化公开展示分，保证看板所有任务使用一致精度。 */
+/** 业务说明：格式化公开相似度评分，保证看板所有任务使用一致精度。 */
 export function formatScore(score: number | null | undefined) {
   if (score === null || score === undefined || Number.isNaN(score)) return "--";
   return score.toFixed(2);
 }
-

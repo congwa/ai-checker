@@ -1,7 +1,7 @@
-/** 业务说明：管理端评分展示工具，统一处理分数格式化和运行状态文案。 */
+/** 业务说明：管理端评分展示工具，统一处理相似度评分格式化和运行状态文案。 */
 import type { RunView } from "@/types/domain";
 
-/** 业务说明：格式化公开展示分，保障后台和前台看到一致的小数精度。 */
+/** 业务说明：格式化相似度评分，保障后台和前台看到一致的小数精度。 */
 export function formatScore(score: number | null | undefined) {
   if (score === null || score === undefined || Number.isNaN(score)) return "--";
   return `${score.toFixed(2)}`;
@@ -15,8 +15,8 @@ export function toScoreSeries(runs: RunView[]) {
     .sort((left, right) => left.completed_at - right.completed_at)
     .map((run) => ({
       label: new Date(run.completed_at * 1000).toLocaleTimeString("zh-CN", { hour12: false }),
-      smooth: Number(run.smooth_score.toFixed(2)),
-      display: Number(run.display_score.toFixed(2)),
+      publicScore: Number(run.smooth_score.toFixed(2)),
+      actualScore: Number(run.display_score.toFixed(2)),
     }));
 }
 
@@ -24,4 +24,3 @@ export function toScoreSeries(runs: RunView[]) {
 export function getRunStatusLabel(status: RunView["status"]) {
   return status === "success" ? "成功" : "失败";
 }
-

@@ -1,4 +1,4 @@
-/** 业务说明：管理端任务列表组件，集中展示任务启用状态、公开状态和最新评分。 */
+/** 业务说明：管理端任务列表组件，集中展示任务启用状态、公开状态和最新相似度评分。 */
 import { FileClock, Pencil, Play } from "lucide-react";
 import { motion } from "framer-motion";
 import { DeleteConfirmIconButton } from "@/components/admin/shared/DeleteConfirmIconButton";
@@ -49,7 +49,7 @@ export function TaskList({
     <div className="overflow-hidden rounded-lg border border-slate-800">
       <div className="hidden grid-cols-[minmax(220px,1.4fr)_120px_150px_170px_220px] gap-3 border-b border-slate-800 bg-slate-900/90 px-4 py-3 text-xs font-semibold uppercase text-slate-500 lg:grid">
         <span>任务</span>
-        <span>评分</span>
+        <span>相似度评分</span>
         <span>状态</span>
         <span>下次运行</span>
         <span className="text-right">操作</span>

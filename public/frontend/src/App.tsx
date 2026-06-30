@@ -1,5 +1,4 @@
-/** 业务说明：公开看板主页面，整合公开任务卡片、评分曲线和最新采样分布。 */
-import { DistributionPanel } from "@/components/public/DistributionPanel";
+/** 业务说明：公开看板主页面，整合公开任务卡片和相似度评分曲线。 */
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicMetrics } from "@/components/public/PublicMetrics";
 import { ScoreTimeline } from "@/components/public/ScoreTimeline";
@@ -22,21 +21,13 @@ export default function App() {
 
         <PublicMetrics task={dashboard.selectedTask} />
 
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px]">
-          <Card>
-            <div className="flex items-center justify-between">
-              <CardTitle>评分趋势</CardTitle>
-              {dashboard.selectedTask ? <Badge tone={dashboard.selectedTask.enabled ? "warning" : "neutral"}>{dashboard.selectedTask.enabled ? "调度中" : "已停用"}</Badge> : null}
-            </div>
-            <ScoreTimeline points={dashboard.points} />
-          </Card>
-          <Card>
-            <CardTitle>最新分布</CardTitle>
-            <div className="mt-4">
-              <DistributionPanel detail={dashboard.detail} />
-            </div>
-          </Card>
-        </section>
+        <Card>
+          <div className="flex items-center justify-between">
+            <CardTitle>相似度评分趋势</CardTitle>
+            {dashboard.selectedTask ? <Badge tone={dashboard.selectedTask.enabled ? "warning" : "neutral"}>{dashboard.selectedTask.enabled ? "调度中" : "已停用"}</Badge> : null}
+          </div>
+          <ScoreTimeline points={dashboard.points} />
+        </Card>
       </div>
     </main>
   );

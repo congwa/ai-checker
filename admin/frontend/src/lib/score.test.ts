@@ -35,7 +35,6 @@ describe("admin score helpers", () => {
       makeRun("run-1", 10, "success", 99),
       makeRun("run-3", 30, "failed", 90),
     ]);
-    expect(series.map((point) => point.smooth)).toEqual([99, 98]);
+    expect(series.map((point) => point.publicScore)).toEqual([99, 98]);
   });
 });
-

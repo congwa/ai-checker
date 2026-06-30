@@ -12,7 +12,7 @@ interface PublicMetricsProps {
 export function PublicMetrics({ task }: PublicMetricsProps) {
   return (
     <section className="grid gap-5 md:grid-cols-3">
-      <Metric title="当前平滑分" value={formatScore(task?.last_smooth_score)} tone="text-teal-200" />
+      <Metric title="当前相似度评分" value={formatScore(task?.last_smooth_score)} tone="text-teal-200" />
       <Metric title="最新状态" value={getPublicTaskStatusLabel(task)} tone="text-sky-100" />
       <Metric title="更新时间" value={formatDateTime(task?.updated_at)} tone="text-slate-100" />
     </section>

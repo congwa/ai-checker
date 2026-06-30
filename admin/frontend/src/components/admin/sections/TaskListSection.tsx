@@ -27,7 +27,7 @@ export function TaskListSection({ dashboard, onAdd, onEdit, onHistory }: TaskLis
         />
         <MetricCard
           compact
-          title="当前平滑分"
+          title="当前相似度评分"
           value={formatScore(dashboard.selectedTask?.last_smooth_score)}
           tone="text-teal-200"
         />

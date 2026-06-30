@@ -28,16 +28,3 @@ export interface SeriesResponse {
   task: PublicTask;
   points: SeriesPoint[];
 }
-
-export interface PublicRunDetail {
-  id: string;
-  task_id: string;
-  completed_at: number;
-  display_score: number;
-  smooth_score: number;
-  success_count: number;
-  failed_count: number;
-  stats: Record<string, number>;
-  distribution: number[];
-}
-
