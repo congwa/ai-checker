@@ -27,15 +27,15 @@ export function ReferenceList({
 }: ReferenceListProps) {
   if (references.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-slate-700 bg-slate-900/40 p-8 text-sm text-slate-400">
+      <div className="rounded-md border border-dashed border-white/[0.16] bg-white/[0.045] p-8 text-sm text-slate-400">
         暂无参照。先新增并成功运行一个参照，再创建任务作为比较基准。
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-800">
-      <div className="hidden grid-cols-[minmax(170px,1fr)_118px_120px_230px] gap-3 border-b border-slate-800 bg-slate-900/90 px-4 py-3 text-xs font-semibold uppercase text-slate-500 lg:grid">
+    <div className="overflow-hidden rounded-lg border border-white/[0.12] bg-black/20">
+      <div className="hidden grid-cols-[minmax(170px,1fr)_118px_120px_230px] gap-3 border-b border-white/[0.12] bg-white/[0.045] px-4 py-3 text-xs font-semibold text-slate-500 lg:grid">
         <span>参照</span>
         <span>标定状态</span>
         <span>标定次数</span>
@@ -50,11 +50,11 @@ export function ReferenceList({
         return (
           <article
             key={reference.id}
-            className="grid gap-3 border-b border-slate-800 bg-slate-950/60 px-4 py-4 last:border-b-0 hover:bg-slate-900/50 lg:grid-cols-[minmax(170px,1fr)_118px_120px_230px] lg:items-center"
+            className="grid gap-3 border-b border-white/[0.09] bg-transparent px-4 py-4 transition-colors last:border-b-0 hover:bg-white/[0.045] lg:grid-cols-[minmax(170px,1fr)_118px_120px_230px] lg:items-center"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2 truncate text-sm font-semibold text-slate-100">
-                <Crosshair className="h-4 w-4 text-teal-300" />
+                <Crosshair className="h-4 w-4 text-[#39e6c1]" />
                 {reference.name}
               </div>
               <div className="mt-1 truncate text-xs text-slate-400">{reference.model}</div>

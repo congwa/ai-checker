@@ -17,7 +17,7 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
     backgroundColor: "transparent",
     tooltip: {
       trigger: "axis",
-      backgroundColor: "rgba(7, 16, 24, 0.94)",
+      backgroundColor: "rgba(5, 6, 7, 0.95)",
       borderColor: "rgba(255,255,255,0.12)",
       textStyle: { color: "#e2e8f0" },
     },
@@ -25,17 +25,17 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
     xAxis: {
       type: "category",
       data: labels,
-      axisLabel: { color: "#94a3b8", hideOverlap: true, interval: 4, margin: 14, rotate: 35 },
-      axisLine: { lineStyle: { color: "rgba(148,163,184,0.28)" } },
+      axisLabel: { color: "#9aa4ae", hideOverlap: true, interval: 4, margin: 14, rotate: 35 },
+      axisLine: { lineStyle: { color: "rgba(255,255,255,0.18)" } },
       axisTick: { show: false },
     },
     yAxis: {
       type: "value",
       min: 0,
-      axisLabel: { color: "#94a3b8" },
+      axisLabel: { color: "#9aa4ae" },
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "rgba(148,163,184,0.12)" } },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.09)" } },
     },
     series: [
       {
@@ -43,7 +43,7 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
         type: "bar",
         data: buckets,
         barMaxWidth: 18,
-        itemStyle: { color: "#38bdf8", borderRadius: [3, 3, 0, 0] },
+        itemStyle: { color: "#6ba8ff", borderRadius: [3, 3, 0, 0] },
       },
     ],
   };

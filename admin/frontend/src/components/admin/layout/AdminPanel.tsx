@@ -22,8 +22,9 @@ export function AdminPanel({
   bodyClassName,
 }: AdminPanelProps) {
   return (
-    <Card className={className}>
-      <div className="flex flex-col gap-3 border-b border-white/10 pb-4 md:flex-row md:items-center md:justify-between">
+    <Card className={cn("relative overflow-hidden", className)}>
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#39e6c1]/70 via-white/20 to-[#ffb84d]/60" />
+      <div className="flex flex-col gap-3 border-b border-white/[0.12] pb-4 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle>{title}</CardTitle>
           {description ? <div className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">{description}</div> : null}

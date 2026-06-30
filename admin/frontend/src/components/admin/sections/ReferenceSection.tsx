@@ -21,18 +21,18 @@ export function ReferenceSection({ dashboard }: ReferenceSectionProps) {
     <div className={isCreating ? "grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px]" : "space-y-5"}>
       <div className="space-y-5">
         <section className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-          <MetricCard compact title="参照数" value={String(dashboard.references.length)} tone="text-slate-100" />
+          <MetricCard compact title="参照数" value={String(dashboard.references.length)} tone="text-[#f4f7ef]" />
           <MetricCard
             compact
             title="已标定"
             value={String(dashboard.references.filter((reference) => reference.latest_success_run_id).length)}
-            tone="text-teal-200"
+            tone="text-[#b7fff0]"
           />
           <MetricCard
             compact
             title="需处理"
             value={String(dashboard.references.filter((reference) => !reference.latest_success_run_id).length)}
-            tone="text-amber-200"
+            tone="text-[#ffe0a6]"
           />
         </section>
 

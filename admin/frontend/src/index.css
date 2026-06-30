@@ -1,24 +1,82 @@
 /* 业务说明：管理端全局样式，定义监控工作台的深色数据界面、基础变量和动效降级。 */
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "IBM Plex Sans", "Fira Sans", "Aptos", "Noto Sans SC", sans-serif;
+  --font-display: "Aptos Display", "IBM Plex Sans Condensed", "Fira Sans", "Noto Sans SC", sans-serif;
+  --color-ops-ink: #050607;
+  --color-ops-panel: #0b0e10;
+  --color-ops-panel-raised: #10151a;
+  --color-ops-line: rgba(255, 255, 255, 0.11);
+  --color-signal-lime: #b7f860;
+  --color-signal-teal: #39e6c1;
+  --color-signal-amber: #ffb84d;
+  --color-signal-blue: #6ba8ff;
+}
+
 :root {
   color-scheme: dark;
-  font-family: "Fira Sans", "Aptos", "Segoe UI", "Microsoft YaHei", sans-serif;
-  background: #070d12;
-  color: #f2f7fb;
+  font-family: var(--font-sans);
+  background: #050607;
+  color: #f5f7f2;
   letter-spacing: 0;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+}
+
+html {
+  background: #050607;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #070d12;
+  background-color: #050607;
   background-image:
-    linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, transparent 34%, rgba(245, 158, 11, 0.07) 74%, transparent 100%),
-    linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
-  background-size: auto, 52px 52px, 52px 52px;
+    linear-gradient(112deg, rgba(57, 230, 193, 0.12) 0%, transparent 36%),
+    linear-gradient(238deg, rgba(255, 184, 77, 0.12) 0%, transparent 42%),
+    linear-gradient(rgba(255, 255, 255, 0.046) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.038) 1px, transparent 1px);
+  background-position: 0 0, 0 0, -1px -1px, -1px -1px;
+  background-size: auto, auto, 48px 48px, 48px 48px;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 18%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 5px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 82%);
+}
+
+#root {
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+::selection {
+  background: rgba(183, 248, 96, 0.28);
+  color: #fbfff1;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060708;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid #060708;
+  border-radius: 999px;
+  background: rgba(183, 248, 96, 0.35);
 }
 
 button,

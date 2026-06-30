@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 const alertVariants = cva("rounded-md border p-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]", {
   variants: {
     variant: {
-      default: "border-sky-300/30 bg-sky-300/10 text-sky-100",
-      success: "border-teal-300/30 bg-teal-300/10 text-teal-100",
-      destructive: "border-rose-300/30 bg-rose-300/10 text-rose-100",
+      default: "border-[#6ba8ff]/[0.35] bg-[#6ba8ff]/[0.12] text-[#cfe1ff]",
+      success: "border-[#39e6c1]/[0.35] bg-[#39e6c1]/[0.12] text-[#b7fff0]",
+      destructive: "border-rose-300/[0.35] bg-rose-400/[0.12] text-rose-100",
     },
   },
   defaultVariants: {

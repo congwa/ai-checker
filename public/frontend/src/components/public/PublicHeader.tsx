@@ -14,29 +14,30 @@ export function PublicHeader({ isLoading, onRefresh }: PublicHeaderProps) {
     <motion.header
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col gap-4 rounded-lg border border-white/10 bg-[#0b1420]/[0.82] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur md:flex-row md:items-center md:justify-between"
+      className="relative flex flex-col gap-4 overflow-hidden rounded-lg border border-white/[0.12] bg-[linear-gradient(135deg,rgba(15,22,27,0.94),rgba(7,11,14,0.88))] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl md:flex-row md:items-center md:justify-between"
     >
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#6ba8ff] via-[#39e6c1] to-[#ffb84d]" />
       <div className="min-w-0">
         <div className="flex items-center gap-3 text-sm font-semibold text-sky-100">
           <img
-            className="h-10 w-10 rounded-md object-contain shadow-[0_0_0_1px_rgba(56,189,248,.28)]"
+            className="h-11 w-11 rounded-md bg-black/30 object-contain p-1 shadow-[0_0_0_1px_rgba(107,168,255,.3)]"
             src="/codexbuy-logo.png"
             alt=""
             aria-hidden="true"
           />
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-300">Live AI Checker</div>
-            <h1 className="mt-1 text-2xl font-bold text-slate-50 md:text-3xl">模型相似度公开看板</h1>
+            <div className="text-xs font-semibold text-[#cfe1ff]">Live AI Checker</div>
+            <h1 className="mt-1 font-display text-2xl font-bold text-[#f4f8ff] md:text-3xl">模型相似度公开看板</h1>
           </div>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="inline-flex h-10 items-center gap-2 rounded-md border border-teal-300/20 bg-teal-300/10 px-3 text-sm font-semibold text-teal-100">
-          <span className="h-1.5 w-1.5 rounded-full bg-teal-300 shadow-[0_0_16px_rgba(45,212,191,0.7)]" />
+        <span className="inline-flex h-10 items-center gap-2 rounded-md border border-[#39e6c1]/25 bg-[#39e6c1]/[0.12] px-3 text-sm font-semibold text-[#b7fff0]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#39e6c1] shadow-[0_0_16px_rgba(57,230,193,0.58)]" />
           Live
         </span>
         <a
-          className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-white/10 bg-white/[0.07] px-4 text-sm font-semibold text-slate-100 transition-colors hover:border-white/[0.16] hover:bg-white/[0.11] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-white/[0.12] bg-white/[0.075] px-4 text-sm font-semibold text-slate-100 transition-[transform,background-color,border-color] duration-200 hover:-translate-y-px hover:border-white/[0.2] hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6ba8ff]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070a]"
           href="https://codexbuy.com"
           rel="noreferrer"
           target="_blank"

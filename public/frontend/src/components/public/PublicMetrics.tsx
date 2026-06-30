@@ -11,10 +11,10 @@ interface PublicMetricsProps {
 /** 业务说明：渲染公开看板关键指标组，让观察者在第一屏获得最新任务状态。 */
 export function PublicMetrics({ task }: PublicMetricsProps) {
   return (
-    <section className="grid gap-5 md:grid-cols-3">
-      <Metric title="当前相似度评分" value={formatScore(task?.last_smooth_score)} tone="text-teal-200" />
-      <Metric title="最新状态" value={getPublicTaskStatusLabel(task)} tone="text-sky-100" />
-      <Metric title="更新时间" value={formatDateTime(task?.updated_at)} tone="text-slate-100" />
+    <section className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+      <Metric title="当前相似度评分" value={formatScore(task?.last_smooth_score)} tone="text-[#b7fff0]" />
+      <Metric title="最新状态" value={getPublicTaskStatusLabel(task)} tone="text-[#cfe1ff]" />
+      <Metric title="更新时间" value={formatDateTime(task?.updated_at)} tone="text-[#f4f8ff]" />
     </section>
   );
 }
@@ -36,13 +36,14 @@ interface MetricProps {
 function Metric({ title, value, tone }: MetricProps) {
   return (
     <Card className="relative min-h-28 overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-sky-300/70 via-teal-300/50 to-amber-300/50" />
-      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{title}</div>
+      <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-[#6ba8ff] via-[#39e6c1] to-[#ffb84d]" />
+      <div className="absolute right-3 top-3 h-10 w-16 rounded-sm border-r border-t border-white/10" />
+      <div className="pl-2 text-xs font-semibold text-slate-500">{title}</div>
       <motion.div
         key={value}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`mt-4 break-words text-2xl font-bold leading-tight md:text-3xl ${tone}`}
+        className={`mt-4 pl-2 font-display break-words text-2xl font-bold leading-tight md:text-3xl ${tone}`}
       >
         {value}
       </motion.div>

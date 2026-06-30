@@ -6,13 +6,13 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 text-sm font-semibold transition-[background-color,border-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+  "inline-flex h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 text-sm font-semibold transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6ba8ff]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070a] disabled:pointer-events-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "border border-sky-200/30 bg-sky-300 text-slate-950 shadow-[0_10px_30px_rgba(14,165,233,0.22)] hover:bg-sky-200",
-        secondary: "border border-white/10 bg-white/[0.07] text-slate-100 hover:border-white/[0.16] hover:bg-white/[0.11]",
-        ghost: "bg-transparent text-sky-100 hover:bg-sky-300/10",
+        default: "border border-[#9fc2ff]/[0.45] bg-[#6ba8ff] text-[#06101d] shadow-[0_14px_32px_rgba(107,168,255,0.2)] hover:bg-[#93c1ff]",
+        secondary: "border border-white/[0.12] bg-white/[0.075] text-slate-100 hover:border-white/[0.2] hover:bg-white/[0.12]",
+        ghost: "bg-transparent text-sky-100 hover:bg-sky-300/10 hover:text-sky-50",
       },
       size: {
         default: "h-10 px-4",

@@ -34,12 +34,12 @@ export function TaskHistorySection({ dashboard, onEdit, onDeleteTask }: TaskHist
         <MetricCard
           title="相似度评分"
           value={formatScore(dashboard.selectedTask.last_smooth_score)}
-          tone="text-teal-200"
+          tone="text-[#b7fff0]"
         />
         <MetricCard
           title="下次运行"
           value={formatDateTime(dashboard.selectedTask.next_run_at)}
-          tone="text-slate-100"
+          tone="text-[#f4f7ef]"
         />
         <MetricCard
           title="参照"
@@ -48,13 +48,13 @@ export function TaskHistorySection({ dashboard, onEdit, onDeleteTask }: TaskHist
               ? dashboard.referenceMap.get(dashboard.selectedTask.reference_id)?.name ?? "参照已删除"
               : "未选择"
           }
-          tone="text-amber-200"
+          tone="text-[#ffe0a6]"
         />
       </section>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:flex-row md:items-center md:justify-between">
+      <section className="flex flex-col gap-3 rounded-lg border border-white/[0.12] bg-[linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-100">{dashboard.selectedTask.name}</h2>
+          <h2 className="font-display text-lg font-semibold text-[#f4f7ef]">{dashboard.selectedTask.name}</h2>
           <div className="mt-1 text-sm text-slate-400">{dashboard.selectedTask.model}</div>
         </div>
         <div className="flex flex-wrap gap-2">

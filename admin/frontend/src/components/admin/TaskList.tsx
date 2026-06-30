@@ -44,15 +44,15 @@ export function TaskList({
 }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-white/15 bg-white/[0.04] p-8 text-sm text-slate-400">
+      <div className="rounded-md border border-dashed border-white/[0.16] bg-white/[0.045] p-8 text-sm text-slate-400">
         暂无任务。先准备一个成功标定的参照，再添加需要监控的模型任务。
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-white/10 bg-black/10">
-      <div className="hidden grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] gap-3 border-b border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 lg:grid">
+    <div className="overflow-hidden rounded-lg border border-white/[0.12] bg-black/20">
+      <div className="hidden grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] gap-3 border-b border-white/[0.12] bg-white/[0.045] px-4 py-3 text-xs font-semibold text-slate-500 lg:grid">
         <span>任务</span>
         <span>相似度评分</span>
         <span>状态</span>
@@ -74,20 +74,20 @@ export function TaskList({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, delay: index * 0.04 }}
             className={cn(
-              "grid gap-3 border-b border-white/10 bg-transparent px-4 py-4 transition last:border-b-0 lg:grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] lg:items-center",
+              "grid gap-3 border-b border-white/[0.09] bg-transparent px-4 py-4 transition last:border-b-0 lg:grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] lg:items-center",
               selectedTaskId === task.id
-                ? "bg-teal-300/[0.08] shadow-[inset_3px_0_0_rgba(45,212,191,0.9)]"
-                : "hover:bg-white/[0.04]",
+                ? "bg-[#b7f860]/[0.08] shadow-[inset_3px_0_0_rgba(183,248,96,0.95)]"
+                : "hover:bg-white/[0.045]",
             )}
           >
             <button
-              className="min-w-0 cursor-pointer rounded-md text-left focus:outline-none focus:ring-2 focus:ring-teal-200/80"
+              className="min-w-0 cursor-pointer rounded-md text-left focus:outline-none focus:ring-2 focus:ring-[#b7f860]/80"
               aria-pressed={selectedTaskId === task.id}
               onClick={() => onSelect(task.id)}
             >
               <div className="truncate text-sm font-semibold text-slate-50">{task.name}</div>
               <div className="mt-1 truncate text-xs text-slate-400">{task.model}</div>
-              <div className="mt-1 truncate text-xs text-teal-200/80">
+              <div className="mt-1 truncate text-xs text-[#b7fff0]/85">
                 参照：{reference ? reference.name : task.reference_id ? "参照已删除" : "未选择"}
               </div>
               {isRunning && job ? (
@@ -96,7 +96,7 @@ export function TaskList({
                 <p className="mt-2 text-xs text-rose-200">{job.error_summary ?? "最近一次运行失败"}</p>
               ) : null}
             </button>
-            <div className="w-fit rounded-md border border-teal-300/20 bg-teal-300/[0.08] px-3 py-2 text-2xl font-bold leading-none text-teal-100 lg:text-lg">
+            <div className="w-fit rounded-md border border-[#39e6c1]/25 bg-[#39e6c1]/[0.09] px-3 py-2 font-display text-2xl font-bold leading-none text-[#b7fff0] lg:text-lg">
               {formatScore(task.last_smooth_score)}
             </div>
             <div className="space-y-2">

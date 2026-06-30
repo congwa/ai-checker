@@ -18,18 +18,18 @@ export function TaskListSection({ dashboard, onAdd, onEdit, onHistory }: TaskLis
   return (
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-3 sm:gap-5">
-        <MetricCard compact title="任务数" value={String(dashboard.tasks.length)} tone="text-slate-100" />
+        <MetricCard compact title="任务数" value={String(dashboard.tasks.length)} tone="text-[#f4f7ef]" />
         <MetricCard
           compact
           title="公开任务"
           value={String(dashboard.tasks.filter((task) => task.public_enabled).length)}
-          tone="text-sky-200"
+          tone="text-[#cfe1ff]"
         />
         <MetricCard
           compact
           title="当前相似度评分"
           value={formatScore(dashboard.selectedTask?.last_smooth_score)}
-          tone="text-teal-200"
+          tone="text-[#b7fff0]"
         />
       </section>
 

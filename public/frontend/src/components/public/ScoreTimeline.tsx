@@ -14,7 +14,7 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
     backgroundColor: "transparent",
     tooltip: {
       trigger: "axis",
-      backgroundColor: "rgba(7, 16, 24, 0.94)",
+      backgroundColor: "rgba(5, 7, 10, 0.95)",
       borderColor: "rgba(255,255,255,0.12)",
       textStyle: { color: "#e2e8f0" },
     },
@@ -22,9 +22,9 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
     xAxis: {
       type: "category",
       data: series.map((point) => point.label),
-      axisLine: { lineStyle: { color: "rgba(125,211,252,0.3)" } },
+      axisLine: { lineStyle: { color: "rgba(255,255,255,0.18)" } },
       axisTick: { show: false },
-      axisLabel: { color: "#93c5fd" },
+      axisLabel: { color: "#a7b3c3" },
     },
     yAxis: {
       type: "value",
@@ -32,8 +32,8 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
       max: 100,
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "rgba(125,211,252,0.13)" } },
-      axisLabel: { color: "#93c5fd" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.09)" } },
+      axisLabel: { color: "#a7b3c3" },
     },
     series: [
       {
@@ -42,9 +42,9 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
         smooth: true,
         data: series.map((point) => point.score),
         symbolSize: 7,
-        lineStyle: { width: 3, color: "#2dd4bf" },
-        itemStyle: { color: "#2dd4bf" },
-        areaStyle: { color: "#2dd4bf", opacity: 0.08 },
+        lineStyle: { width: 3, color: "#39e6c1" },
+        itemStyle: { color: "#39e6c1" },
+        areaStyle: { color: "#39e6c1", opacity: 0.08 },
       },
     ],
   };

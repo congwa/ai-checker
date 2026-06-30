@@ -46,13 +46,13 @@ export function ActiveRunJobsPanel({
 
   return (
     <section
-      className="mt-5 rounded-lg border border-teal-300/20 bg-teal-300/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+      className="mt-5 rounded-lg border border-[#b7f860]/25 bg-[#b7f860]/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_18px_50px_rgba(183,248,96,0.08)]"
       role="status"
       aria-live="polite"
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 text-sm font-semibold text-teal-100">
-          <Activity className="h-4 w-4 text-teal-300" />
+        <div className="flex items-center gap-2 text-sm font-semibold text-[#efffbb]">
+          <Activity className="h-4 w-4 text-[#b7f860]" />
           后台运行中
         </div>
         <div className="text-xs text-slate-400">{activeJobs.length} 个操作正在等待结果</div>
@@ -65,7 +65,7 @@ export function ActiveRunJobsPanel({
             const targetName = getJobTargetName(job, taskMap, referenceMap);
 
             return (
-              <article key={job.id} className="rounded-md border border-white/10 bg-black/20 p-3">
+              <article key={job.id} className="rounded-md border border-white/[0.12] bg-black/25 p-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">

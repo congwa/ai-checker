@@ -14,14 +14,15 @@ interface MetricCardProps {
 export function MetricCard({ title, value, tone, compact = false }: MetricCardProps) {
   return (
     <Card className={cn("relative min-w-0 overflow-hidden", compact ? "min-h-24 p-3 sm:min-h-28 sm:p-4" : "min-h-28")}>
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-teal-300/70 via-sky-300/40 to-amber-300/50" />
-      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{title}</div>
+      <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-[#b7f860] via-[#39e6c1] to-[#ffb84d]" />
+      <div className="absolute right-3 top-3 h-10 w-16 rounded-sm border-r border-t border-white/10" />
+      <div className="pl-2 text-xs font-semibold text-slate-500">{title}</div>
       <motion.div
         key={value}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "break-words font-bold leading-tight",
+          "pl-2 font-display break-words font-bold leading-tight",
           compact ? "mt-3 text-xl sm:mt-4 sm:text-2xl" : "mt-4 text-2xl md:text-3xl",
           tone,
         )}

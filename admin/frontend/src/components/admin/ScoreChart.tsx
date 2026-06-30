@@ -11,12 +11,12 @@ interface ScoreChartProps {
 const chartConfig = {
   actual: {
     name: "真实结果",
-    color: "#f59e0b",
+    color: "#ffb84d",
     getValue: (point: ReturnType<typeof toScoreSeries>[number]) => point.actualScore,
   },
   public: {
     name: "相似度评分",
-    color: "#2dd4bf",
+    color: "#39e6c1",
     getValue: (point: ReturnType<typeof toScoreSeries>[number]) => point.publicScore,
   },
 };
@@ -29,7 +29,7 @@ export function ScoreChart({ runs, variant }: ScoreChartProps) {
     backgroundColor: "transparent",
     tooltip: {
       trigger: "axis",
-      backgroundColor: "rgba(7, 16, 24, 0.94)",
+      backgroundColor: "rgba(5, 6, 7, 0.95)",
       borderColor: "rgba(255,255,255,0.12)",
       textStyle: { color: "#e2e8f0" },
     },
@@ -37,9 +37,9 @@ export function ScoreChart({ runs, variant }: ScoreChartProps) {
     xAxis: {
       type: "category",
       data: series.map((point) => point.label),
-      axisLine: { lineStyle: { color: "rgba(148,163,184,0.28)" } },
+      axisLine: { lineStyle: { color: "rgba(255,255,255,0.18)" } },
       axisTick: { show: false },
-      axisLabel: { color: "#94a3b8" },
+      axisLabel: { color: "#9aa4ae" },
     },
     yAxis: {
       type: "value",
@@ -47,8 +47,8 @@ export function ScoreChart({ runs, variant }: ScoreChartProps) {
       max: 100,
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "rgba(148,163,184,0.12)" } },
-      axisLabel: { color: "#94a3b8" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.09)" } },
+      axisLabel: { color: "#9aa4ae" },
     },
     series: [
       {

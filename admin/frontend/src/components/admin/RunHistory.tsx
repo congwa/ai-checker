@@ -50,7 +50,7 @@ export function RunHistory({
   }, [runs]);
 
   if (runs.length === 0) {
-    return <div className="rounded-md border border-dashed border-white/15 bg-white/[0.04] p-6 text-sm text-slate-400">暂无运行记录</div>;
+    return <div className="rounded-md border border-dashed border-white/[0.16] bg-white/[0.045] p-6 text-sm text-slate-400">暂无运行记录</div>;
   }
   return (
     <div className="space-y-3">
@@ -72,11 +72,11 @@ export function RunHistory({
             parsedDraftScore > maxAllowed);
 
         return (
-        <article key={run.id} className="rounded-lg border border-white/10 bg-white/[0.05] p-3 transition-colors hover:bg-white/[0.07]">
+        <article key={run.id} className="rounded-lg border border-white/[0.12] bg-white/[0.055] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.08]">
           <div className="flex items-start justify-between gap-3">
             <button
               type="button"
-              className="min-w-0 flex-1 rounded-md text-left focus:outline-none focus:ring-2 focus:ring-teal-200/80"
+              className="min-w-0 flex-1 rounded-md text-left focus:outline-none focus:ring-2 focus:ring-[#b7f860]/80"
               onClick={() => onSelectRun(run.id)}
             >
               <div>
@@ -91,7 +91,7 @@ export function RunHistory({
               {run.error_summary ? <p className="mt-2 text-xs text-amber-200">{run.error_summary}</p> : null}
             </button>
             <div className="shrink-0 text-right">
-              <div className="text-xl font-bold text-slate-100">{formatScore(run.smooth_score)}</div>
+              <div className="font-display text-xl font-bold text-slate-100">{formatScore(run.smooth_score)}</div>
               <StatusBadge status={run.status === "success" ? "success" : "failed"} label={getRunStatusLabel(run.status)} />
               <div className="mt-2 flex justify-end">
                 <DeleteConfirmIconButton
@@ -109,7 +109,7 @@ export function RunHistory({
             </div>
           </div>
           {run.status === "success" ? (
-            <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-3">
+            <div className="mt-3 rounded-md border border-white/[0.12] bg-black/25 p-3">
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-300">
@@ -121,7 +121,7 @@ export function RunHistory({
                       onCheckedChange={(checked) => onTogglePublic(run.id, checked)}
                     />
                     <span>{run.public_enabled ? "前台展示" : "前台隐藏"}</span>
-                    {isBusy ? <StatusIcon status="running" className="text-teal-200" /> : null}
+                    {isBusy ? <StatusIcon status="running" className="text-[#b7fff0]" /> : null}
                   </label>
                   <StatusBadge
                     status={run.public_enabled ? "info" : "disabled"}
@@ -187,7 +187,7 @@ export function RunHistory({
               </div>
             </div>
           ) : (
-            <div className="mt-3 rounded-md border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-500">
+            <div className="mt-3 rounded-md border border-white/[0.12] bg-black/25 px-3 py-2 text-xs text-slate-500">
               失败记录只保留后台诊断，不进入前台展示。
             </div>
           )}

@@ -195,7 +195,7 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
           />
         </div>
         {form.public_score_range_enabled ? (
-          <div className="grid gap-3 rounded-md border border-white/10 bg-white/[0.04] p-3 sm:grid-cols-2">
+          <div className="grid gap-3 rounded-md border border-white/[0.12] bg-white/[0.055] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] sm:grid-cols-2">
             <Field label="最低显示分" htmlFor="task-public-score-min">
               <Input
                 id="task-public-score-min"

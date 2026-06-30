@@ -12,7 +12,7 @@ interface SwitchFieldProps {
 /** 业务说明：渲染任务二元开关，让调度和公开状态在创建或编辑时都能被明确控制。 */
 export function SwitchField({ id, label, checked, onCheckedChange }: SwitchFieldProps) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-slate-800 bg-slate-900/50 p-3">
+    <div className="flex items-center justify-between gap-3 rounded-md border border-white/[0.12] bg-white/[0.055] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
       <Label htmlFor={id}>{label}</Label>
       <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
     </div>

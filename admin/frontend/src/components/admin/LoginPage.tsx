@@ -32,45 +32,76 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28 }}
-        className="w-full max-w-md"
+        className="w-full max-w-4xl"
       >
-        <Card className="relative overflow-hidden p-6">
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-300 via-sky-300 to-amber-300" />
-          <div className="flex items-center gap-3">
-            <img
-              className="h-11 w-11 rounded-md object-contain shadow-[0_0_0_1px_rgba(45,212,191,.22)]"
-              src="/codexbuy-logo.png"
-              alt=""
-              aria-hidden="true"
-            />
-            <div>
-              <div className="text-sm font-semibold text-teal-200">codexbuy 渠道监测</div>
-              <h1 className="text-2xl font-bold text-slate-50">后台登录</h1>
-            </div>
-          </div>
-
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="admin-secret">访问密钥</Label>
-              <Input
-                id="admin-secret"
-                type="password"
-                autoFocus
-                value={secret}
-                placeholder="输入后台访问密钥"
-                onChange={(event) => setSecret(event.target.value)}
+        <Card className="relative grid overflow-hidden p-0 md:grid-cols-[0.9fr_1fr]">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#b7f860] via-[#39e6c1] to-[#ffb84d]" />
+          <section className="hidden min-h-[360px] border-r border-white/[0.12] bg-[linear-gradient(145deg,rgba(183,248,96,0.14),rgba(8,10,11,0.2)_42%,rgba(255,184,77,0.13))] p-7 md:flex md:flex-col md:justify-between">
+            <div className="flex items-center gap-3">
+              <img
+                className="h-12 w-12 rounded-md bg-black/30 object-contain p-1 shadow-[0_0_0_1px_rgba(183,248,96,.28)]"
+                src="/codexbuy-logo.png"
+                alt=""
+                aria-hidden="true"
               />
+              <div>
+                <div className="font-display text-base font-semibold text-[#f4f7ef]">AI Checker Ops</div>
+                <div className="mt-1 text-xs font-medium text-slate-400">codexbuy 渠道监测</div>
+              </div>
             </div>
-            {error ? (
-              <Alert variant="destructive" role="alert">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            ) : null}
-            <Button className="w-full" type="submit">
-              <LockKeyhole className="h-4 w-4" />
-              进入后台
-            </Button>
-          </form>
+
+            <div>
+              <div className="mb-4 h-px w-28 bg-gradient-to-r from-[#b7f860] to-transparent" />
+              <div className="font-display text-4xl font-bold leading-tight text-[#f6f8f0]">Secure Ops</div>
+              <div className="mt-3 flex gap-2">
+                <span className="h-1.5 w-10 rounded-full bg-[#b7f860]" />
+                <span className="h-1.5 w-5 rounded-full bg-[#39e6c1]" />
+                <span className="h-1.5 w-3 rounded-full bg-[#ffb84d]" />
+              </div>
+            </div>
+          </section>
+
+          <section className="p-6 sm:p-8">
+            <div className="flex items-center gap-3 md:hidden">
+              <img
+                className="h-11 w-11 rounded-md bg-black/30 object-contain p-1 shadow-[0_0_0_1px_rgba(183,248,96,.22)]"
+                src="/codexbuy-logo.png"
+                alt=""
+                aria-hidden="true"
+              />
+              <div>
+                <div className="text-sm font-semibold text-[#d8ff8f]">codexbuy 渠道监测</div>
+                <h1 className="font-display text-2xl font-bold text-slate-50">后台登录</h1>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <div className="text-sm font-semibold text-[#d8ff8f]">codexbuy 渠道监测</div>
+              <h1 className="mt-1 font-display text-3xl font-bold text-slate-50">后台登录</h1>
+            </div>
+
+            <form className="mt-7 space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-2">
+                <Label htmlFor="admin-secret">访问密钥</Label>
+                <Input
+                  id="admin-secret"
+                  type="password"
+                  autoFocus
+                  value={secret}
+                  placeholder="输入后台访问密钥"
+                  onChange={(event) => setSecret(event.target.value)}
+                />
+              </div>
+              {error ? (
+                <Alert variant="destructive" role="alert">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              ) : null}
+              <Button className="w-full" type="submit">
+                <LockKeyhole className="h-4 w-4" />
+                进入后台
+              </Button>
+            </form>
+          </section>
         </Card>
       </motion.div>
     </main>

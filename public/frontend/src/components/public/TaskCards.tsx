@@ -14,10 +14,10 @@ interface TaskCardsProps {
 /** 业务说明：渲染公开任务列表，点击任务后展示对应评分曲线。 */
 export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
   if (tasks.length === 0) {
-    return <div className="rounded-lg border border-dashed border-white/15 bg-white/[0.04] p-8 text-sm text-slate-400">暂无</div>;
+    return <div className="rounded-lg border border-dashed border-white/[0.16] bg-white/[0.045] p-8 text-sm text-slate-400">暂无</div>;
   }
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
+    <div className="grid gap-3 md:grid-cols-2">
       {tasks.map((task, index) => (
         <motion.button
           key={task.id}
@@ -26,22 +26,22 @@ export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
           transition={{ duration: 0.24, delay: index * 0.05 }}
           onClick={() => onSelect(task.id)}
           className={cn(
-            "relative overflow-hidden rounded-lg border p-4 text-left shadow-[0_18px_50px_rgba(0,0,0,0.18)] transition-[background-color,border-color,box-shadow] duration-200 focus:outline-none focus:ring-2 focus:ring-sky-200/80",
+            "relative overflow-hidden rounded-lg border p-4 text-left shadow-[0_18px_54px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.04)] transition-[transform,background-color,border-color,box-shadow] duration-200 hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-[#6ba8ff]/80",
             selectedTaskId === task.id
-              ? "border-sky-200/40 bg-sky-300/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_50px_rgba(14,165,233,0.12)]"
-              : "border-white/10 bg-[#0b1420]/[0.78] hover:border-sky-300/30 hover:bg-white/[0.07]",
+              ? "border-[#6ba8ff]/[0.45] bg-[#6ba8ff]/[0.12] shadow-[inset_3px_0_0_rgba(107,168,255,0.95),0_18px_54px_rgba(107,168,255,0.1)]"
+              : "border-white/[0.12] bg-[linear-gradient(180deg,rgba(15,22,27,0.9),rgba(7,11,14,0.88))] hover:border-[#6ba8ff]/[0.35] hover:bg-white/[0.075]",
           )}
         >
-          {selectedTaskId === task.id ? <span className="absolute inset-x-0 top-0 h-px bg-sky-200/80" /> : null}
+          {selectedTaskId === task.id ? <span className="absolute inset-x-0 top-0 h-px bg-[#6ba8ff]" /> : null}
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-sm font-semibold text-sky-100">
-                <Activity className="h-4 w-4 text-sky-300" />
+                <Activity className="h-4 w-4 text-[#6ba8ff]" />
                 {task.name}
               </div>
               <div className="mt-1 text-xs text-slate-400">{task.model}</div>
             </div>
-            <motion.div key={task.last_smooth_score ?? "empty"} initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="rounded-md border border-teal-300/20 bg-teal-300/10 px-2 py-1 text-3xl font-bold leading-none text-teal-100">
+            <motion.div key={task.last_smooth_score ?? "empty"} initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="rounded-md border border-[#39e6c1]/25 bg-[#39e6c1]/[0.1] px-2 py-1 font-display text-3xl font-bold leading-none text-[#b7fff0]">
               {formatScore(task.last_smooth_score)}
             </motion.div>
           </div>
