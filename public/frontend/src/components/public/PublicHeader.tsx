@@ -1,6 +1,6 @@
 /** 业务说明：公开看板页头组件，承载品牌识别和只读数据刷新入口。 */
 import { motion } from "framer-motion";
-import { RefreshCw } from "lucide-react";
+import { ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PublicHeaderProps {
@@ -24,13 +24,24 @@ export function PublicHeader({ isLoading, onRefresh }: PublicHeaderProps) {
             alt=""
             aria-hidden="true"
           />
-          AI Checker Public
+          codexbuy 渠道监测
         </div>
       </div>
-      <Button disabled={isLoading} aria-busy={isLoading} onClick={onRefresh}>
-        <RefreshCw className="h-4 w-4" />
-        {isLoading ? "刷新中" : "刷新"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <a
+          className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-900 px-4 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          href="https://codexbuy.com"
+          rel="noreferrer"
+          target="_blank"
+        >
+          <ExternalLink className="h-4 w-4" />
+          返回官网
+        </a>
+        <Button disabled={isLoading} aria-busy={isLoading} onClick={onRefresh}>
+          <RefreshCw className="h-4 w-4" />
+          {isLoading ? "刷新中" : "刷新"}
+        </Button>
+      </div>
     </motion.header>
   );
 }

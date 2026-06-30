@@ -1,4 +1,4 @@
-"""产品评分门面，隔离源码指纹算法与 90 分下限、平滑曲线等展示规则。"""
+"""产品评分门面，隔离源码指纹算法与公开展示的分数平滑规则。"""
 
 from __future__ import annotations
 
@@ -16,7 +16,9 @@ from app.fingerprint_algorithm import (
     js_divergence as source_js_divergence,
 )
 
-MIN_PUBLIC_SCORE = 90.0
+MIN_PUBLIC_SCORE = 85.0
+LOW_SCORE_CEILING = 89.99
+REAL_SCORE_THRESHOLD = 90.0
 MAX_PUBLIC_SCORE = 100.0
 
 
@@ -63,13 +65,9 @@ def raw_similarity(distribution: list[float], baseline_distribution: list[float]
 
 
 def display_score(raw_score: float) -> float:
-    """把原始相似度映射为公开展示分，满足业务要求的最低 90 分保护。"""
+    """把 0-1 原始相似度转换成真实百分制评分，保留后台诊断可信度。"""
 
-    return clamp(
-        MIN_PUBLIC_SCORE + clamp(raw_score, 0.0, 1.0) * 10,
-        MIN_PUBLIC_SCORE,
-        MAX_PUBLIC_SCORE,
-    )
+    return clamp(raw_score, 0.0, 1.0) * MAX_PUBLIC_SCORE
 
 
 def smooth_score(
@@ -77,11 +75,18 @@ def smooth_score(
     previous_smooth_score: float | None,
     smoothing_level: int,
 ) -> float:
-    """按后台配置的平滑度计算 EMA 分数，让前台曲线稳定但仍能反映趋势变化。"""
+    """90 分以上展示真实分；低于 90 分时平滑到 85-90 的公开低分区间。"""
 
+    current_score = clamp(current_display_score, 0.0, MAX_PUBLIC_SCORE)
+    if current_score >= REAL_SCORE_THRESHOLD:
+        return current_score
+
+    low_current_score = clamp(current_score, MIN_PUBLIC_SCORE, LOW_SCORE_CEILING)
     if previous_smooth_score is None:
-        return current_display_score
+        return low_current_score
+
+    previous_low_score = clamp(previous_smooth_score, MIN_PUBLIC_SCORE, LOW_SCORE_CEILING)
     normalized = clamp(float(smoothing_level), 0.0, 100.0)
     alpha = max(0.05, 1 - normalized / 100)
-    smoothed = alpha * current_display_score + (1 - alpha) * previous_smooth_score
-    return clamp(smoothed, MIN_PUBLIC_SCORE, MAX_PUBLIC_SCORE)
+    smoothed = alpha * low_current_score + (1 - alpha) * previous_low_score
+    return clamp(smoothed, MIN_PUBLIC_SCORE, LOW_SCORE_CEILING)

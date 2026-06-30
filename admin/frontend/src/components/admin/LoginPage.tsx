@@ -44,7 +44,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               aria-hidden="true"
             />
             <div>
-              <div className="text-sm font-semibold text-teal-200">AI Checker Admin</div>
+              <div className="text-sm font-semibold text-teal-200">codexbuy 渠道监测</div>
               <h1 className="text-2xl font-bold text-slate-50">后台登录</h1>
             </div>
           </div>

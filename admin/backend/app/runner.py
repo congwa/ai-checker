@@ -186,8 +186,8 @@ class TaskRunner:
                 success_count=len(numbers),
                 failed_count=max(len(errors), reference["sample_count"] - len(numbers)),
                 raw_similarity=0.0,
-                display_score=90.0,
-                smooth_score=90.0,
+                display_score=0.0,
+                smooth_score=85.0,
                 baseline_run_id=None,
                 error_summary=self._summarize_errors(errors) or "有效采样少于 10 个，无法建立参照",
                 stats=calculate_stats(numbers),
@@ -233,7 +233,7 @@ class TaskRunner:
         """构造失败运行记录，沿用参照采样次数避免任务协议漂移。"""
 
         previous_smooth = task.get("last_smooth_score")
-        fallback_score = previous_smooth if previous_smooth is not None else 90.0
+        fallback_score = smooth_score(0.0, previous_smooth, task["smoothing_level"])
         return RunView(
             id=run_id,
             task_id=task["id"],
@@ -244,7 +244,7 @@ class TaskRunner:
             success_count=len(numbers),
             failed_count=max(len(errors), sample_count - len(numbers)),
             raw_similarity=0.0,
-            display_score=90.0,
+            display_score=0.0,
             smooth_score=fallback_score,
             baseline_run_id=task.get("baseline_run_id"),
             error_summary=self._summarize_errors(errors) or "有效采样少于 10 个，无法计算相似度",

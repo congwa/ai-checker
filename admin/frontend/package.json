@@ -2,7 +2,7 @@
   "name": "ai-checker-admin-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "后台管理前端，用于配置 AI Checker 采样任务、基准和相似度评分。",
+  "description": "codexbuy 渠道监测后台，用于配置采样任务、基准和相似度评分。",
   "type": "module",
   "scripts": {
     "dev": "vite",

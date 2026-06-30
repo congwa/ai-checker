@@ -28,8 +28,8 @@ export function AdminShell({
               aria-hidden="true"
             />
             <div>
-              <div className="text-sm font-semibold text-teal-200">AI Checker</div>
-              <div className="text-xs text-slate-500">Admin Console</div>
+              <div className="text-sm font-semibold text-teal-200">codexbuy 渠道监测</div>
+              <div className="text-xs text-slate-500">管理后台</div>
             </div>
           </div>
 

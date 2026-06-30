@@ -1,5 +1,5 @@
 /** 业务说明：后台页面页头组件，统一模块标题、登录状态、刷新和退出操作。 */
-import { LogOut, RefreshCw } from "lucide-react";
+import { ExternalLink, LogOut, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, StatusIcon } from "@/components/ui/status";
@@ -34,6 +34,15 @@ export function AdminPageHeader({
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <StatusBadge status="success" label="已登录" />
+        <a
+          className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-800 px-4 text-sm font-semibold text-slate-100 transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 lg:h-10"
+          href="https://codexbuy.com"
+          rel="noreferrer"
+          target="_blank"
+        >
+          <ExternalLink className="h-4 w-4" />
+          返回官网
+        </a>
         <Button variant="secondary" onClick={onRefresh} disabled={isLoading} aria-busy={isLoading}>
           {isLoading ? (
             <StatusIcon status="running" />

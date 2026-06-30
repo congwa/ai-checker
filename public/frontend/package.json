@@ -2,7 +2,7 @@
   "name": "ai-checker-public-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "前台公开看板，用于展示 AI Checker 脱敏相似度评分曲线。",
+  "description": "codexbuy 渠道监测公开看板，用于展示脱敏相似度评分曲线。",
   "type": "module",
   "scripts": {
     "dev": "vite",
