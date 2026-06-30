@@ -1,4 +1,5 @@
 /** 业务说明：任务历史页面区块，承载选中任务的评分看板、分布和运行记录诊断。 */
+import { DeleteConfirmIconButton } from "@/components/admin/shared/DeleteConfirmIconButton";
 import { DistributionChart } from "@/components/admin/DistributionChart";
 import { AdminPanel } from "@/components/admin/layout/AdminPanel";
 import { MetricCard } from "@/components/admin/MetricCard";
@@ -14,10 +15,11 @@ import { formatDateTime } from "@/lib/utils";
 interface TaskHistorySectionProps {
   dashboard: AdminDashboardState;
   onEdit: (taskId: string) => void;
+  onDeleteTask: (taskId: string) => void;
 }
 
 /** 业务说明：渲染后台任务历史页，围绕选中任务展示评分看板、分布和运行记录。 */
-export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProps) {
+export function TaskHistorySection({ dashboard, onEdit, onDeleteTask }: TaskHistorySectionProps) {
   if (!dashboard.selectedTask) {
     return (
       <AdminPanel title="任务历史">
@@ -50,7 +52,7 @@ export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProp
         />
       </section>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-slate-800/80 px-4 py-3 md:flex-row md:items-center md:justify-between">
+      <section className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-slate-100">{dashboard.selectedTask.name}</h2>
           <div className="mt-1 text-sm text-slate-400">{dashboard.selectedTask.model}</div>
@@ -60,6 +62,17 @@ export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProp
           <Button variant="secondary" onClick={() => onEdit(dashboard.selectedTask!.id)}>
             编辑任务
           </Button>
+          <DeleteConfirmIconButton
+            ariaLabel={`删除任务 ${dashboard.selectedTask.name}`}
+            tooltip="删除任务"
+            buttonLabel="删除任务"
+            title={`删除任务「${dashboard.selectedTask.name}」？`}
+            description="任务配置会被移除，公开看板将不再展示它。历史记录不会继续作为当前任务更新。此操作不可撤销。"
+            confirmLabel="删除任务"
+            disabled={dashboard.deletingIds.has(dashboard.selectedTask.id)}
+            isDeleting={dashboard.deletingIds.has(dashboard.selectedTask.id)}
+            onConfirm={() => onDeleteTask(dashboard.selectedTask!.id)}
+          />
         </div>
       </section>
 
@@ -67,7 +80,7 @@ export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProp
         <AdminPanel title="真实结果" description="单次运行即时结果，不做平滑处理。">
           <ScoreChart runs={dashboard.runs} variant="actual" />
         </AdminPanel>
-        <AdminPanel title="前台展示结果" description="公开页实际展示的相似度评分，受平滑度配置影响。">
+        <AdminPanel title="前台展示结果" description="公开页实际展示的相似度评分，受平滑度、显示分区间和单次公开设置影响。">
           <ScoreChart runs={dashboard.runs} variant="public" />
         </AdminPanel>
       </section>
@@ -82,7 +95,21 @@ export function TaskHistorySection({ dashboard, onEdit }: TaskHistorySectionProp
         </AdminPanel>
         <AdminPanel title="运行历史">
           <ScrollArea className="h-[min(560px,70vh)] pr-3">
-            <RunHistory runs={dashboard.runs} onSelectRun={dashboard.chooseRun} />
+            <RunHistory
+              runs={dashboard.runs}
+              runPublicUpdatingIds={dashboard.runPublicUpdatingIds}
+              runDeletingIds={dashboard.runDeletingIds}
+              publicScoreRange={{
+                enabled: dashboard.selectedTask.public_score_range_enabled,
+                min: dashboard.selectedTask.public_score_min,
+                max: dashboard.selectedTask.public_score_max,
+              }}
+              onSelectRun={dashboard.chooseRun}
+              onTogglePublic={dashboard.toggleRunPublic}
+              onSavePublicScore={dashboard.saveRunPublicScore}
+              onClearPublicScore={dashboard.clearRunPublicScore}
+              onDeleteRun={dashboard.removeRun}
+            />
           </ScrollArea>
         </AdminPanel>
       </section>

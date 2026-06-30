@@ -1,6 +1,6 @@
 /** 业务说明：管理端 API 工具测试，验证请求转换和错误处理服务于后台业务操作。 */
 import { describe, expect, it, vi } from "vitest";
-import { createReferenceRunJob, fetchTasks } from "@/lib/api";
+import { createReferenceRunJob, deleteRun, fetchTasks } from "@/lib/api";
 
 describe("admin api client", () => {
   it("sends bearer token when fetching tasks", async () => {
@@ -54,6 +54,25 @@ describe("admin api client", () => {
       }),
     );
     expect(job.status).toBe("queued");
+    vi.unstubAllGlobals();
+  });
+
+  it("deletes a single task run through the admin API", async () => {
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ deleted: true }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await deleteRun("abc", "task-1", "run-1");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:8010/api/tasks/task-1/runs/run-1",
+      expect.objectContaining({
+        method: "DELETE",
+        headers: expect.objectContaining({ Authorization: "Bearer abc" }),
+      }),
+    );
+    expect(result.deleted).toBe(true);
     vi.unstubAllGlobals();
   });
 });

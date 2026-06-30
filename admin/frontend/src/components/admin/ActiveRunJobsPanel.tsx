@@ -46,7 +46,7 @@ export function ActiveRunJobsPanel({
 
   return (
     <section
-      className="mt-5 rounded-lg border border-teal-400/20 bg-teal-400/5 p-4"
+      className="mt-5 rounded-lg border border-teal-300/20 bg-teal-300/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
       role="status"
       aria-live="polite"
     >
@@ -65,7 +65,7 @@ export function ActiveRunJobsPanel({
             const targetName = getJobTargetName(job, taskMap, referenceMap);
 
             return (
-              <article key={job.id} className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+              <article key={job.id} className="rounded-md border border-white/10 bg-black/20 p-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">

@@ -17,6 +17,7 @@ from app.models import (
     ReferenceView,
     RunDetail,
     RunJobView,
+    RunPublicUpdate,
     RunView,
     TaskCreate,
     TaskUpdate,
@@ -24,6 +25,7 @@ from app.models import (
 )
 from app.repository import RedisRepository
 from app.runner import TaskRunner
+from app.scoring import is_score_in_public_range, validate_public_score_range
 from app.security import encrypt_api_key
 
 
@@ -256,6 +258,26 @@ async def list_reference_runs(
     return await repository.list_reference_history(reference_id)
 
 
+@app.delete(
+    "/api/references/{reference_id}/runs/{run_id}",
+    dependencies=[Depends(require_admin)],
+)
+async def delete_reference_run(
+    reference_id: str,
+    run_id: str,
+    repository: RedisRepository = Depends(get_repository),
+) -> dict[str, bool]:
+    """删除参照的某次标定历史，并同步重算最新可用成功基准。"""
+
+    reference = await repository.get_reference(reference_id)
+    if not isinstance(reference, ReferenceView):
+        raise HTTPException(status_code=404, detail="参照不存在")
+    deleted = await repository.delete_run(reference_id, run_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="运行记录不存在")
+    return {"deleted": True}
+
+
 @app.get("/api/tasks/{task_id}", response_model=TaskView, dependencies=[Depends(require_admin)])
 async def get_task(task_id: str, repository: RedisRepository = Depends(get_repository)) -> TaskView:
     """读取单个任务的脱敏配置，供编辑面板回填当前业务设置。"""
@@ -278,13 +300,15 @@ async def update_task(
     current_task = await repository.get_task(task_id)
     if not isinstance(current_task, TaskView):
         raise HTTPException(status_code=404, detail="任务不存在")
-    reference_id = (
-        payload.reference_id if payload.reference_id is not None else current_task.reference_id
-    )
-    if reference_id is None:
-        raise HTTPException(status_code=400, detail="任务未选择参照")
-    reference = await _validate_reference(repository, reference_id)
-    payload = _bind_task_update_to_reference(payload, reference)
+    if payload.model_fields_set & {"reference_id", "prompt", "sample_count"}:
+        reference_id = (
+            payload.reference_id if payload.reference_id is not None else current_task.reference_id
+        )
+        if reference_id is None:
+            raise HTTPException(status_code=400, detail="任务未选择参照")
+        reference = await _validate_reference(repository, reference_id)
+        payload = _bind_task_update_to_reference(payload, reference)
+    _validate_merged_task_score_range(current_task, payload)
     encrypted_api_key = (
         encrypt_api_key(payload.api_key, settings.secret_key) if payload.api_key else None
     )
@@ -304,6 +328,26 @@ async def delete_task(
     deleted = await repository.delete_task(task_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="任务不存在")
+    return {"deleted": True}
+
+
+@app.delete(
+    "/api/tasks/{task_id}/runs/{run_id}",
+    dependencies=[Depends(require_admin)],
+)
+async def delete_task_run(
+    task_id: str,
+    run_id: str,
+    repository: RedisRepository = Depends(get_repository),
+) -> dict[str, bool]:
+    """删除任务的某次历史运行，并同步移除后台曲线和公开看板数据点。"""
+
+    task = await repository.get_task(task_id)
+    if not isinstance(task, TaskView):
+        raise HTTPException(status_code=404, detail="任务不存在")
+    deleted = await repository.delete_run(task_id, run_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="运行记录不存在")
     return {"deleted": True}
 
 
@@ -365,6 +409,52 @@ async def list_runs(
     """读取任务运行历史，支持后台展示成功率、错误摘要和评分变化。"""
 
     return await repository.list_runs(task_id, limit=max(1, min(limit, 200)))
+
+
+@app.patch(
+    "/api/tasks/{task_id}/runs/{run_id}/public",
+    response_model=RunView,
+    dependencies=[Depends(require_admin)],
+)
+async def update_run_public_settings(
+    task_id: str,
+    run_id: str,
+    payload: RunPublicUpdate,
+    repository: RedisRepository = Depends(get_repository),
+) -> RunView:
+    """更新某次运行在公开看板上的可见性和前台展示分数。"""
+
+    task = await repository.get_task(task_id)
+    if not isinstance(task, TaskView):
+        raise HTTPException(status_code=404, detail="任务不存在")
+    if (
+        "public_score_override" in payload.model_fields_set
+        and payload.public_score_override is not None
+        and task.public_score_range_enabled
+        and not is_score_in_public_range(
+            payload.public_score_override,
+            task.public_score_min,
+            task.public_score_max,
+        )
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"前台展示分必须在 {task.public_score_min:g}-"
+                f"{task.public_score_max:g} 之间"
+            ),
+        )
+
+    run = await repository.update_run_public_settings(
+        task_id=task_id,
+        run_id=run_id,
+        public_enabled=payload.public_enabled,
+        public_score_override=payload.public_score_override,
+        public_score_override_provided="public_score_override" in payload.model_fields_set,
+    )
+    if run is None:
+        raise HTTPException(status_code=404, detail="运行记录不存在")
+    return run
 
 
 @app.get(
@@ -518,6 +608,28 @@ def _bind_task_update_to_reference(payload: TaskUpdate, reference: ReferenceView
     data["prompt"] = reference.prompt
     data["sample_count"] = reference.sample_count
     return TaskUpdate(**data)
+
+
+def _validate_merged_task_score_range(current_task: TaskView, payload: TaskUpdate) -> None:
+    """校验任务区间更新后的完整配置，支持只提交最低或最高分。"""
+
+    min_score = (
+        payload.public_score_min
+        if payload.public_score_min is not None
+        else current_task.public_score_min
+    )
+    max_score = (
+        payload.public_score_max
+        if payload.public_score_max is not None
+        else current_task.public_score_max
+    )
+    try:
+        validate_public_score_range(min_score, max_score)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
 
 
 def _assert_task_protocol_matches_reference(

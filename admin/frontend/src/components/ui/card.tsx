@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils";
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <section
-      className={cn("rounded-lg border border-slate-800 bg-slate-950/70 p-4 text-slate-100 shadow-xl shadow-black/10", className)}
+      className={cn(
+        "rounded-lg border border-white/10 bg-[#0b121a]/[0.88] p-4 text-slate-100 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur",
+        className,
+      )}
       {...props}
     />
   );
@@ -19,7 +22,7 @@ export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElemen
 
 /** 业务说明：提供卡片标题区，帮助后台用户快速定位当前信息块的业务含义。 */
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-sm font-semibold text-slate-100", className)} {...props} />;
+  return <h2 className={cn("text-sm font-semibold tracking-[0.01em] text-slate-50", className)} {...props} />;
 }
 
 /** 业务说明：提供卡片说明文字，承接后台规则、约束和下一步操作提示。 */

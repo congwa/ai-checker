@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils";
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <section
-      className={cn("rounded-lg border border-sky-900/60 bg-slate-950/70 p-4 shadow-xl shadow-black/10", className)}
+      className={cn(
+        "rounded-lg border border-white/10 bg-[#0b1420]/[0.86] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.26)] backdrop-blur",
+        className,
+      )}
       {...props}
     />
   );
@@ -19,7 +22,7 @@ export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElemen
 
 /** 业务说明：渲染公开看板模块标题，帮助观察者快速定位数据维度。 */
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-sm font-semibold text-sky-100", className)} {...props} />;
+  return <h2 className={cn("text-sm font-semibold tracking-[0.01em] text-sky-50", className)} {...props} />;
 }
 
 /** 业务说明：渲染公开看板卡片说明，承载数据口径或更新时间等辅助信息。 */

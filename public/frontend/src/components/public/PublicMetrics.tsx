@@ -35,13 +35,14 @@ interface MetricProps {
 /** 业务说明：渲染单个公开看板指标卡，保持数字变化时有轻量反馈但不干扰阅读。 */
 function Metric({ title, value, tone }: MetricProps) {
   return (
-    <Card className="min-h-28">
-      <div className="text-xs font-semibold uppercase text-slate-500">{title}</div>
+    <Card className="relative min-h-28 overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-sky-300/70 via-teal-300/50 to-amber-300/50" />
+      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{title}</div>
       <motion.div
         key={value}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`mt-4 break-words text-2xl font-bold ${tone}`}
+        className={`mt-4 break-words text-2xl font-bold leading-tight md:text-3xl ${tone}`}
       >
         {value}
       </motion.div>

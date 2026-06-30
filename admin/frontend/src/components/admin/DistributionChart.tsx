@@ -15,24 +15,34 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
   const labels = Array.from({ length: bucketCount }, (_, index) => `${index * bucketSize + 1}-${Math.min((index + 1) * bucketSize, 355)}`);
   const option = {
     backgroundColor: "transparent",
-    tooltip: { trigger: "axis" },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(7, 16, 24, 0.94)",
+      borderColor: "rgba(255,255,255,0.12)",
+      textStyle: { color: "#e2e8f0" },
+    },
     grid: { left: 42, right: 18, top: 20, bottom: 64 },
     xAxis: {
       type: "category",
       data: labels,
       axisLabel: { color: "#94a3b8", hideOverlap: true, interval: 4, margin: 14, rotate: 35 },
-      axisLine: { lineStyle: { color: "#334155" } },
+      axisLine: { lineStyle: { color: "rgba(148,163,184,0.28)" } },
+      axisTick: { show: false },
     },
     yAxis: {
       type: "value",
+      min: 0,
       axisLabel: { color: "#94a3b8" },
-      splitLine: { lineStyle: { color: "#1e293b" } },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "rgba(148,163,184,0.12)" } },
     },
     series: [
       {
         name: "频率",
         type: "bar",
         data: buckets,
+        barMaxWidth: 18,
         itemStyle: { color: "#38bdf8", borderRadius: [3, 3, 0, 0] },
       },
     ],

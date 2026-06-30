@@ -6,9 +6,12 @@ from app.scoring import (
     calculate_distribution,
     calculate_stats,
     display_score,
+    is_score_in_public_range,
     js_divergence,
+    ranged_public_score,
     raw_similarity,
     smooth_score,
+    validate_public_score_range,
 )
 
 
@@ -57,3 +60,29 @@ def test_smooth_score_keeps_low_scores_between_eighty_five_and_ninety() -> None:
     max_smoothing = smooth_score(70.0, 100.0, 100)
     assert 85.0 <= max_smoothing < 90.0
     assert max_smoothing == pytest.approx(89.7405)
+
+
+def test_ranged_public_score_stays_inside_configured_bounds_without_edge_sticking() -> None:
+    """启用渠道区间后，前台最终分应在区间内自然波动，不直接贴最低最高边。"""
+
+    low = ranged_public_score(85.0, None, 65, "run-low", 90.0, 95.0)
+    middle = ranged_public_score(90.0, low, 65, "run-middle", 90.0, 95.0)
+    high = ranged_public_score(100.0, middle, 65, "run-high", 90.0, 95.0)
+
+    assert 90.0 <= low <= 95.0
+    assert 90.0 <= middle <= 95.0
+    assert 90.0 <= high <= 95.0
+    assert low != 90.0
+    assert high != 95.0
+    assert low < high
+    assert ranged_public_score(90.0, low, 65, "run-middle", 90.0, 95.0) == middle
+
+
+def test_public_score_range_validation_requires_meaningful_width() -> None:
+    """渠道显示分区间必须是百分制内至少 5 分宽的有效区间。"""
+
+    assert validate_public_score_range(85, 100) == (85.0, 100.0)
+    assert is_score_in_public_range(92.5, 90.0, 95.0) is True
+    assert is_score_in_public_range(97.0, 90.0, 95.0) is False
+    with pytest.raises(ValueError, match="至少需要相差 5 分"):
+        validate_public_score_range(90, 94)

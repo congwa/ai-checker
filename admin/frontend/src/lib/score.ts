@@ -15,7 +15,7 @@ export function toScoreSeries(runs: RunView[]) {
     .sort((left, right) => left.completed_at - right.completed_at)
     .map((run) => ({
       label: new Date(run.completed_at * 1000).toLocaleTimeString("zh-CN", { hour12: false }),
-      publicScore: Number(run.smooth_score.toFixed(2)),
+      publicScore: run.public_enabled ? Number((run.public_score ?? run.smooth_score).toFixed(2)) : null,
       actualScore: Number(run.display_score.toFixed(2)),
     }));
 }

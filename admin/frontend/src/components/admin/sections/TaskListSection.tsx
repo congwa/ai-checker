@@ -17,7 +17,7 @@ interface TaskListSectionProps {
 export function TaskListSection({ dashboard, onAdd, onEdit, onHistory }: TaskListSectionProps) {
   return (
     <div className="space-y-5">
-      <section className="grid grid-cols-3 gap-3 sm:gap-5">
+      <section className="grid gap-3 sm:grid-cols-3 sm:gap-5">
         <MetricCard compact title="任务数" value={String(dashboard.tasks.length)} tone="text-slate-100" />
         <MetricCard
           compact
@@ -33,16 +33,22 @@ export function TaskListSection({ dashboard, onAdd, onEdit, onHistory }: TaskLis
         />
       </section>
 
-      <AdminPanel title="任务列表" action={<Button onClick={onAdd}>添加任务</Button>}>
+      <AdminPanel
+        title="任务列表"
+        description="选择任务后可运行采样、编辑配置或查看公开展示趋势。"
+        action={<Button onClick={onAdd}>添加任务</Button>}
+      >
         <TaskList
           tasks={dashboard.tasks}
           referenceMap={dashboard.referenceMap}
           selectedTaskId={dashboard.selectedTaskId}
           runJobByTarget={dashboard.runJobByTarget}
           deletingIds={dashboard.deletingIds}
+          publicUpdatingIds={dashboard.publicUpdatingIds}
           onSelect={dashboard.setSelectedTaskId}
           onRun={dashboard.runNow}
           onDelete={dashboard.removeTask}
+          onTogglePublic={dashboard.toggleTaskPublic}
           onEdit={onEdit}
           onHistory={onHistory}
         />

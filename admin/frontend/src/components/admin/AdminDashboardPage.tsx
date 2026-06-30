@@ -20,7 +20,7 @@ interface AdminDashboardPageProps {
 /** 业务说明：渲染登录后的后台管理工作台，管理员可完成配置、运行和诊断。 */
 export function AdminDashboardPage({ token, onLogout }: AdminDashboardPageProps) {
   const dashboard = useAdminDashboard(token);
-  const [activeSection, setActiveSection] = useState<AdminSection>("references");
+  const [activeSection, setActiveSection] = useState<AdminSection>("history");
 
   /** 业务说明：切换到指定任务的历史页，保持历史记录和曲线与任务选择一致。 */
   function openHistory(taskId: string) {
@@ -106,7 +106,11 @@ export function AdminDashboardPage({ token, onLogout }: AdminDashboardPageProps)
         ) : null}
 
         {activeSection === "history" ? (
-          <TaskHistorySection dashboard={dashboard} onEdit={openEdit} />
+          <TaskHistorySection
+            dashboard={dashboard}
+            onEdit={openEdit}
+            onDeleteTask={dashboard.removeTask}
+          />
         ) : null}
       </div>
     </AdminShell>

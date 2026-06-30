@@ -4,6 +4,7 @@ import type {
   ReferenceView,
   RunDetail,
   RunJobView,
+  RunPublicPayload,
   RunView,
   TaskPayload,
   TaskView,
@@ -134,4 +135,24 @@ export function fetchRuns(token: string, taskId: string) {
 /** 业务说明：读取单次运行详情，支撑后台查看分布和原始采样。 */
 export function fetchRunDetail(token: string, taskId: string, runId: string) {
   return requestJson<RunDetail>(`/api/tasks/${taskId}/runs/${runId}`, token);
+}
+
+/** 业务说明：删除某次任务历史记录，同步让后台曲线和公开看板移除该数据点。 */
+export function deleteRun(token: string, taskId: string, runId: string) {
+  return requestJson<{ deleted: boolean }>(`/api/tasks/${taskId}/runs/${runId}`, token, {
+    method: "DELETE",
+  });
+}
+
+/** 业务说明：更新单次运行的公开可见性或前台展示分，不影响真实评分与后台诊断。 */
+export function updateRunPublicSettings(
+  token: string,
+  taskId: string,
+  runId: string,
+  payload: RunPublicPayload,
+) {
+  return requestJson<RunView>(`/api/tasks/${taskId}/runs/${runId}/public`, token, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
 }

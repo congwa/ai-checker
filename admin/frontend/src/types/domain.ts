@@ -18,6 +18,9 @@ export interface TaskView {
   smoothing_level: number;
   enabled: boolean;
   public_enabled: boolean;
+  public_score_range_enabled: boolean;
+  public_score_min: number;
+  public_score_max: number;
   baseline_run_id: string | null;
   last_run_id: string | null;
   last_smooth_score: number | null;
@@ -39,6 +42,9 @@ export interface TaskPayload {
   smoothing_level: number;
   enabled: boolean;
   public_enabled: boolean;
+  public_score_range_enabled: boolean;
+  public_score_min: number;
+  public_score_max: number;
 }
 
 export interface RunView {
@@ -53,6 +59,9 @@ export interface RunView {
   raw_similarity: number;
   display_score: number;
   smooth_score: number;
+  public_enabled: boolean;
+  public_score_override: number | null;
+  public_score: number | null;
   baseline_run_id: string | null;
   error_summary: string | null;
   stats: Record<string, number>;
@@ -104,4 +113,9 @@ export interface RunJobView {
   started_at: number | null;
   completed_at: number | null;
   updated_at: number;
+}
+
+export interface RunPublicPayload {
+  public_enabled?: boolean;
+  public_score_override?: number | null;
 }

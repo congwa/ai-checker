@@ -17,19 +17,19 @@ export function AdminShell({
   children,
 }: AdminShellProps) {
   return (
-    <main className="min-h-screen bg-slate-950">
-      <div className="grid min-h-screen lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="border-b border-slate-800 bg-slate-950 px-4 py-4 lg:border-b-0 lg:border-r">
-          <div className="flex items-center gap-3 px-2">
+    <main className="min-h-screen text-slate-100">
+      <div className="grid min-h-screen lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="border-b border-white/10 bg-[#071018]/90 px-4 py-4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.04)] backdrop-blur lg:border-b-0 lg:border-r">
+          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3">
             <img
-              className="h-10 w-10 rounded-md object-contain shadow-[0_0_0_1px_rgba(45,212,191,.22)]"
+              className="h-11 w-11 rounded-md object-contain shadow-[0_0_0_1px_rgba(45,212,191,.28)]"
               src="/codexbuy-logo.png"
               alt=""
               aria-hidden="true"
             />
             <div>
-              <div className="text-sm font-semibold text-teal-200">codexbuy 渠道监测</div>
-              <div className="text-xs text-slate-500">管理后台</div>
+              <div className="text-sm font-semibold text-teal-100">codexbuy 渠道监测</div>
+              <div className="text-xs font-medium text-slate-500">AI Checker Ops</div>
             </div>
           </div>
 
@@ -41,10 +41,10 @@ export function AdminShell({
               return (
                 <button
                   key={item.id}
-                  className={`flex h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-teal-300 lg:h-10 ${
+                  className={`flex h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-[background-color,border-color,color,box-shadow] duration-200 focus:outline-none focus:ring-2 focus:ring-teal-200/80 lg:h-10 ${
                     isActive
-                      ? "bg-teal-300 text-slate-950"
-                      : "text-slate-300 hover:bg-slate-900 hover:text-slate-50"
+                      ? "bg-teal-300 text-slate-950 shadow-[0_10px_28px_rgba(20,184,166,0.22)]"
+                      : "border border-transparent text-slate-300 hover:border-white/10 hover:bg-white/[0.06] hover:text-slate-50"
                   }`}
                   aria-current={isActive ? "page" : undefined}
                   onClick={() => onSectionChange(item.id)}
@@ -56,12 +56,16 @@ export function AdminShell({
             })}
           </nav>
 
-          <div className="mt-6 hidden rounded-md border border-slate-800 bg-slate-900/70 p-3 text-xs text-slate-400 lg:block">
-            当前任务：{selectedTaskName ?? "未选择"}
+          <div className="mt-6 hidden rounded-lg border border-amber-200/15 bg-amber-200/[0.06] p-3 text-xs text-slate-400 lg:block">
+            <div className="mb-2 flex items-center gap-2 font-semibold text-amber-100">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+              当前任务
+            </div>
+            <div className="truncate text-slate-200">{selectedTaskName ?? "未选择"}</div>
           </div>
         </aside>
 
-        <section className="min-w-0 px-4 py-5 md:px-6 lg:px-8">
+        <section className="min-w-0 px-4 py-5 md:px-6 lg:px-8 lg:py-6">
           <div className="mx-auto max-w-[1520px]">{children}</div>
         </section>
       </div>

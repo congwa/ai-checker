@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.config import DEFAULT_PROMPT
+from app.scoring import validate_public_score_range
 
 ProviderName = Literal["openai", "anthropic"]
 RunStatus = Literal["success", "failed"]
@@ -69,7 +70,17 @@ class TaskCreate(BaseModel):
     interval_seconds: int = Field(default=3600, ge=60, le=604800)
     smoothing_level: int = Field(default=65, ge=0, le=100)
     enabled: bool = True
-    public_enabled: bool = True
+    public_enabled: bool = False
+    public_score_range_enabled: bool = False
+    public_score_min: float = Field(default=85.0, ge=0, le=100)
+    public_score_max: float = Field(default=100.0, ge=0, le=100)
+
+    @model_validator(mode="after")
+    def validate_score_range(self) -> TaskCreate:
+        """确保渠道前台显示分区间合法，避免创建后公开分无法计算。"""
+
+        validate_public_score_range(self.public_score_min, self.public_score_max)
+        return self
 
 
 class TaskUpdate(BaseModel):
@@ -87,6 +98,17 @@ class TaskUpdate(BaseModel):
     smoothing_level: int | None = Field(default=None, ge=0, le=100)
     enabled: bool | None = None
     public_enabled: bool | None = None
+    public_score_range_enabled: bool | None = None
+    public_score_min: float | None = Field(default=None, ge=0, le=100)
+    public_score_max: float | None = Field(default=None, ge=0, le=100)
+
+    @model_validator(mode="after")
+    def validate_score_range_when_complete(self) -> TaskUpdate:
+        """当更新请求同时包含最低和最高分时，提前校验区间合法性。"""
+
+        if self.public_score_min is not None and self.public_score_max is not None:
+            validate_public_score_range(self.public_score_min, self.public_score_max)
+        return self
 
 
 class TaskView(BaseModel):
@@ -104,6 +126,9 @@ class TaskView(BaseModel):
     smoothing_level: int
     enabled: bool
     public_enabled: bool
+    public_score_range_enabled: bool
+    public_score_min: float
+    public_score_max: float
     baseline_run_id: str | None = None
     last_run_id: str | None = None
     last_smooth_score: float | None = None
@@ -126,9 +151,33 @@ class RunView(BaseModel):
     raw_similarity: float
     display_score: float
     smooth_score: float
+    public_enabled: bool = True
+    public_score_override: float | None = None
+    public_score: float | None = None
     baseline_run_id: str | None = None
     error_summary: str | None = None
     stats: dict[str, float | int] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def fill_public_score(self) -> RunView:
+        """没有单独覆盖时，前台展示分沿用系统计算出的相似度评分。"""
+
+        if self.status != "success" and "public_enabled" not in self.model_fields_set:
+            self.public_enabled = False
+        if self.public_score is None:
+            self.public_score = (
+                self.public_score_override
+                if self.public_score_override is not None
+                else self.smooth_score
+            )
+        return self
+
+
+class RunPublicUpdate(BaseModel):
+    """更新某次运行在公开看板上的展示状态和可选展示分数。"""
+
+    public_enabled: bool | None = None
+    public_score_override: float | None = Field(default=None, ge=0, le=100)
 
 
 class RunDetail(RunView):

@@ -6,15 +6,15 @@ import { cn } from "@/lib/utils";
 export type BadgeTone = "success" | "warning" | "danger" | "neutral" | "info";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded border px-2 py-1 text-xs font-semibold transition-colors",
+  "inline-flex items-center rounded border px-2 py-1 text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors",
   {
     variants: {
       tone: {
-        success: "border-teal-400/30 bg-teal-400/10 text-teal-200",
-        warning: "border-amber-400/30 bg-amber-400/10 text-amber-200",
-        danger: "border-rose-400/30 bg-rose-400/10 text-rose-200",
-        neutral: "border-slate-600 bg-slate-800 text-slate-300",
-        info: "border-sky-400/30 bg-sky-400/10 text-sky-200",
+        success: "border-teal-300/30 bg-teal-300/10 text-teal-100",
+        warning: "border-amber-300/30 bg-amber-300/10 text-amber-100",
+        danger: "border-rose-300/30 bg-rose-300/10 text-rose-100",
+        neutral: "border-white/10 bg-white/[0.07] text-slate-300",
+        info: "border-sky-300/30 bg-sky-300/10 text-sky-100",
       },
     },
     defaultVariants: {

@@ -6,17 +6,17 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 lg:h-10",
+  "inline-flex h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 text-sm font-semibold transition-[background-color,border-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 lg:h-10",
   {
     variants: {
       variant: {
-        default: "bg-teal-400 text-slate-950 shadow-[0_0_0_1px_rgba(45,212,191,.25)] hover:bg-teal-300",
-        primary: "bg-teal-400 text-slate-950 shadow-[0_0_0_1px_rgba(45,212,191,.25)] hover:bg-teal-300",
-        secondary: "border border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700",
-        destructive: "bg-rose-500 text-white hover:bg-rose-400",
-        danger: "bg-rose-500 text-white hover:bg-rose-400",
-        outline: "border border-slate-700 bg-transparent text-slate-100 hover:bg-slate-800",
-        ghost: "bg-transparent text-slate-300 hover:bg-slate-800 hover:text-slate-50",
+        default: "border border-teal-200/30 bg-teal-300 text-slate-950 shadow-[0_10px_30px_rgba(20,184,166,0.22)] hover:bg-teal-200",
+        primary: "border border-teal-200/30 bg-teal-300 text-slate-950 shadow-[0_10px_30px_rgba(20,184,166,0.22)] hover:bg-teal-200",
+        secondary: "border border-white/10 bg-white/[0.07] text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/[0.16] hover:bg-white/[0.11]",
+        destructive: "border border-rose-300/25 bg-rose-500 text-white shadow-[0_10px_30px_rgba(244,63,94,0.2)] hover:bg-rose-400",
+        danger: "border border-rose-300/25 bg-rose-500 text-white shadow-[0_10px_30px_rgba(244,63,94,0.2)] hover:bg-rose-400",
+        outline: "border border-white/[0.12] bg-transparent text-slate-100 hover:border-teal-200/30 hover:bg-teal-300/10",
+        ghost: "bg-transparent text-slate-300 hover:bg-white/[0.07] hover:text-slate-50",
         link: "h-auto px-0 text-teal-200 underline-offset-4 hover:underline lg:h-auto",
       },
       size: {

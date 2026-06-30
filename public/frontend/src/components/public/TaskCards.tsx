@@ -14,10 +14,10 @@ interface TaskCardsProps {
 /** 业务说明：渲染公开任务列表，点击任务后展示对应评分曲线。 */
 export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
   if (tasks.length === 0) {
-    return <div className="rounded-lg border border-dashed border-slate-700 p-8 text-sm text-slate-400">暂无公开任务</div>;
+    return <div className="rounded-lg border border-dashed border-white/15 bg-white/[0.04] p-8 text-sm text-slate-400">暂无</div>;
   }
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
       {tasks.map((task, index) => (
         <motion.button
           key={task.id}
@@ -26,10 +26,13 @@ export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
           transition={{ duration: 0.24, delay: index * 0.05 }}
           onClick={() => onSelect(task.id)}
           className={cn(
-            "rounded-lg border p-4 text-left transition",
-            selectedTaskId === task.id ? "border-sky-300 bg-sky-300/10" : "border-sky-900/60 bg-slate-950/70 hover:border-sky-600",
+            "relative overflow-hidden rounded-lg border p-4 text-left shadow-[0_18px_50px_rgba(0,0,0,0.18)] transition-[background-color,border-color,box-shadow] duration-200 focus:outline-none focus:ring-2 focus:ring-sky-200/80",
+            selectedTaskId === task.id
+              ? "border-sky-200/40 bg-sky-300/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_50px_rgba(14,165,233,0.12)]"
+              : "border-white/10 bg-[#0b1420]/[0.78] hover:border-sky-300/30 hover:bg-white/[0.07]",
           )}
         >
+          {selectedTaskId === task.id ? <span className="absolute inset-x-0 top-0 h-px bg-sky-200/80" /> : null}
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-sm font-semibold text-sky-100">
@@ -38,7 +41,7 @@ export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
               </div>
               <div className="mt-1 text-xs text-slate-400">{task.model}</div>
             </div>
-            <motion.div key={task.last_smooth_score ?? "empty"} initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="text-3xl font-bold text-teal-200">
+            <motion.div key={task.last_smooth_score ?? "empty"} initial={{ scale: 0.96, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="rounded-md border border-teal-300/20 bg-teal-300/10 px-2 py-1 text-3xl font-bold leading-none text-teal-100">
               {formatScore(task.last_smooth_score)}
             </motion.div>
           </div>

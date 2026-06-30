@@ -17,6 +17,9 @@ function makeRun(id: string, completedAt: number, status: RunView["status"], sco
     raw_similarity: 1,
     display_score: score,
     smooth_score: score,
+    public_enabled: true,
+    public_score_override: null,
+    public_score: score,
     baseline_run_id: "run-1",
     error_summary: null,
     stats: {},
@@ -36,5 +39,17 @@ describe("admin score helpers", () => {
       makeRun("run-3", 30, "failed", 90),
     ]);
     expect(series.map((point) => point.publicScore)).toEqual([99, 98]);
+  });
+
+  it("uses front-end overrides and hides private points in public series", () => {
+    const visible = makeRun("run-1", 10, "success", 99);
+    visible.public_score_override = 87.25;
+    visible.public_score = 87.25;
+    const hidden = makeRun("run-2", 20, "success", 98);
+    hidden.public_enabled = false;
+
+    const series = toScoreSeries([hidden, visible]);
+    expect(series.map((point) => point.actualScore)).toEqual([99, 98]);
+    expect(series.map((point) => point.publicScore)).toEqual([87.25, null]);
   });
 });

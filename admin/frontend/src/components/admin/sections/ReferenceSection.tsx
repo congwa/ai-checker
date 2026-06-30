@@ -20,7 +20,7 @@ export function ReferenceSection({ dashboard }: ReferenceSectionProps) {
   return (
     <div className={isCreating ? "grid gap-5 xl:grid-cols-[minmax(0,1fr)_430px]" : "space-y-5"}>
       <div className="space-y-5">
-        <section className="grid grid-cols-3 gap-3 sm:gap-4">
+        <section className="grid gap-3 sm:grid-cols-3 sm:gap-4">
           <MetricCard compact title="参照数" value={String(dashboard.references.length)} tone="text-slate-100" />
           <MetricCard
             compact

@@ -12,19 +12,27 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
   const series = toPublicScoreSeries(points);
   const option = {
     backgroundColor: "transparent",
-    tooltip: { trigger: "axis" },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(7, 16, 24, 0.94)",
+      borderColor: "rgba(255,255,255,0.12)",
+      textStyle: { color: "#e2e8f0" },
+    },
     grid: { left: 42, right: 18, top: 24, bottom: 36 },
     xAxis: {
       type: "category",
       data: series.map((point) => point.label),
-      axisLine: { lineStyle: { color: "#1e3a5f" } },
+      axisLine: { lineStyle: { color: "rgba(125,211,252,0.3)" } },
+      axisTick: { show: false },
       axisLabel: { color: "#93c5fd" },
     },
     yAxis: {
       type: "value",
-      min: 90,
+      min: 0,
       max: 100,
-      splitLine: { lineStyle: { color: "#172554" } },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "rgba(125,211,252,0.13)" } },
       axisLabel: { color: "#93c5fd" },
     },
     series: [
@@ -36,6 +44,7 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
         symbolSize: 7,
         lineStyle: { width: 3, color: "#2dd4bf" },
         itemStyle: { color: "#2dd4bf" },
+        areaStyle: { color: "#2dd4bf", opacity: 0.08 },
       },
     ],
   };

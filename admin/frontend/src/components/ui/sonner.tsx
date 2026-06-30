@@ -6,10 +6,10 @@ export function Toaster() {
   return (
     <SonnerToaster
       theme="dark"
-      position="top-right"
+      position="bottom-right"
       toastOptions={{
         classNames: {
-          toast: "border border-slate-800 bg-slate-950 text-slate-100",
+          toast: "border border-white/10 bg-[#0b121a] text-slate-100 shadow-[0_18px_60px_rgba(0,0,0,0.32)]",
           title: "text-slate-50",
           description: "text-slate-300",
         },

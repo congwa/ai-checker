@@ -23,10 +23,10 @@ export function AdminPanel({
 }: AdminPanelProps) {
   return (
     <Card className={className}>
-      <div className="flex flex-col gap-3 border-b border-slate-800 pb-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 border-b border-white/10 pb-4 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle>{title}</CardTitle>
-          {description ? <div className="mt-1 text-sm text-slate-400">{description}</div> : null}
+          {description ? <div className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">{description}</div> : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>

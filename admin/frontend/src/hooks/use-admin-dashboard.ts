@@ -7,6 +7,7 @@ import {
   createTaskRunJob,
   createTask,
   deleteReference,
+  deleteRun,
   deleteTask,
   fetchActiveRunJobs,
   fetchReferences,
@@ -15,6 +16,7 @@ import {
   fetchRuns,
   fetchTasks,
   updateReference,
+  updateRunPublicSettings as updateRunPublicSettingsRequest,
   updateTask,
 } from "@/lib/api";
 import type {
@@ -22,6 +24,7 @@ import type {
   ReferenceView,
   RunDetail,
   RunJobView,
+  RunPublicPayload,
   RunView,
   TaskPayload,
   TaskView,
@@ -45,6 +48,9 @@ export function useAdminDashboard(token: string) {
   const [selectedRun, setSelectedRun] = useState<RunDetail | null>(null);
   const [runJobs, setRunJobs] = useState<RunJobView[]>([]);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set());
+  const [publicUpdatingIds, setPublicUpdatingIds] = useState<Set<string>>(() => new Set());
+  const [runPublicUpdatingIds, setRunPublicUpdatingIds] = useState<Set<string>>(() => new Set());
+  const [runDeletingIds, setRunDeletingIds] = useState<Set<string>>(() => new Set());
   const [notice, setNotice] = useState<OperationNotice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -211,6 +217,7 @@ export function useAdminDashboard(token: string) {
           : await createTask(token, sanitizedPayload);
         await refreshTasks();
         setSelectedTaskId(saved.id);
+        await refreshRuns(saved.id);
         showNotice({
           tone: "success",
           title: taskId ? "任务已更新" : "任务已创建",
@@ -223,6 +230,39 @@ export function useAdminDashboard(token: string) {
           message: err instanceof Error ? err.message : "任务保存失败",
         });
         throw err;
+      }
+    },
+    [refreshRuns, refreshTasks, showNotice, token],
+  );
+
+  /** 业务说明：快速切换任务是否进入公开看板，失败时保留原状态并提示原因。 */
+  const toggleTaskPublic = useCallback(
+    async (taskId: string, publicEnabled: boolean) => {
+      setError(null);
+      setPublicUpdatingIds((current) => new Set(current).add(taskId));
+      try {
+        const updated = await updateTask(token, taskId, { public_enabled: publicEnabled });
+        setTasks((currentTasks) =>
+          currentTasks.map((task) => (task.id === taskId ? updated : task)),
+        );
+        await refreshTasks();
+        showNotice({
+          tone: "success",
+          title: publicEnabled ? "已公开展示" : "已设为私有",
+          message: `${updated.name} ${publicEnabled ? "已进入公开看板。" : "已从公开看板隐藏。"}`,
+        });
+      } catch (err) {
+        showNotice({
+          tone: "error",
+          title: "公开状态切换失败",
+          message: err instanceof Error ? err.message : "无法更新任务公开状态",
+        });
+      } finally {
+        setPublicUpdatingIds((current) => {
+          const next = new Set(current);
+          next.delete(taskId);
+          return next;
+        });
       }
     },
     [refreshTasks, showNotice, token],
@@ -367,6 +407,108 @@ export function useAdminDashboard(token: string) {
     [refreshTasks, selectedTaskId, showNotice, token],
   );
 
+  /** 业务说明：更新单次运行的前台展示设置，让后台可隐藏测试结果或覆盖公开分数。 */
+  const updateRunPublicSettings = useCallback(
+    async (runId: string, payload: RunPublicPayload, successTitle: string, successMessage: string) => {
+      if (!selectedTaskId) return;
+      setError(null);
+      setRunPublicUpdatingIds((current) => new Set(current).add(runId));
+      try {
+        await updateRunPublicSettingsRequest(token, selectedTaskId, runId, payload);
+        setRuns(await fetchRuns(token, selectedTaskId));
+        if (selectedRun?.id === runId) {
+          setSelectedRun(await fetchRunDetail(token, selectedTaskId, runId));
+        }
+        showNotice({
+          tone: "success",
+          title: successTitle,
+          message: successMessage,
+        });
+      } catch (err) {
+        showNotice({
+          tone: "error",
+          title: "运行公开设置失败",
+          message: err instanceof Error ? err.message : "无法更新运行公开设置",
+        });
+      } finally {
+        setRunPublicUpdatingIds((current) => {
+          const next = new Set(current);
+          next.delete(runId);
+          return next;
+        });
+      }
+    },
+    [selectedRun?.id, selectedTaskId, showNotice, token],
+  );
+
+  const toggleRunPublic = useCallback(
+    async (runId: string, publicEnabled: boolean) => {
+      await updateRunPublicSettings(
+        runId,
+        { public_enabled: publicEnabled },
+        publicEnabled ? "已恢复前台展示" : "已隐藏前台结果",
+        publicEnabled ? "这次测试会重新进入公开曲线。" : "这次测试不会出现在公开曲线和详情中。",
+      );
+    },
+    [updateRunPublicSettings],
+  );
+
+  const saveRunPublicScore = useCallback(
+    async (runId: string, publicScoreOverride: number) => {
+      await updateRunPublicSettings(
+        runId,
+        { public_score_override: publicScoreOverride },
+        "前台展示分已更新",
+        `公开看板将显示 ${publicScoreOverride.toFixed(2)}。`,
+      );
+    },
+    [updateRunPublicSettings],
+  );
+
+  const clearRunPublicScore = useCallback(
+    async (runId: string) => {
+      await updateRunPublicSettings(
+        runId,
+        { public_score_override: null },
+        "前台展示分已恢复",
+        "公开看板会继续使用系统计算的相似度评分。",
+      );
+    },
+    [updateRunPublicSettings],
+  );
+
+  /** 业务说明：删除某次任务历史记录，并刷新真实/前台曲线与详情面板。 */
+  const removeRun = useCallback(
+    async (runId: string) => {
+      if (!selectedTaskId) return;
+      setError(null);
+      setRunDeletingIds((current) => new Set(current).add(runId));
+      try {
+        await deleteRun(token, selectedTaskId, runId);
+        await refreshTasks();
+        await refreshRuns(selectedTaskId);
+        showNotice({
+          tone: "success",
+          title: "历史记录已删除",
+          message: "这次测试记录已从后台历史、曲线和公开看板数据中移除。",
+        });
+      } catch (err) {
+        showNotice({
+          tone: "error",
+          title: "历史记录删除失败",
+          message: err instanceof Error ? err.message : "无法删除这次测试记录",
+        });
+      } finally {
+        setRunDeletingIds((current) => {
+          const next = new Set(current);
+          next.delete(runId);
+          return next;
+        });
+      }
+    },
+    [refreshRuns, refreshTasks, selectedTaskId, showNotice, token],
+  );
+
   /** 业务说明：选择某次历史运行详情，用于查看分布图和失败诊断信息。 */
   const chooseRun = useCallback(
     async (runId: string) => {
@@ -429,6 +571,9 @@ export function useAdminDashboard(token: string) {
     selectedTaskId,
     selectedRun,
     deletingIds,
+    publicUpdatingIds,
+    runPublicUpdatingIds,
+    runDeletingIds,
     notice,
     error,
     isLoading,
@@ -440,8 +585,13 @@ export function useAdminDashboard(token: string) {
     runReferenceNow,
     removeReference,
     saveTask,
+    toggleTaskPublic,
     runNow,
     removeTask,
+    toggleRunPublic,
+    saveRunPublicScore,
+    clearRunPublicScore,
+    removeRun,
     chooseRun,
   };
 }

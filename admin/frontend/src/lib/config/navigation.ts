@@ -8,10 +8,10 @@ export const ADMIN_NAV_ITEMS: Array<{
   label: string;
   icon: typeof ListChecks;
 }> = [
-  { id: "references", label: "参照管理", icon: Crosshair },
+  { id: "history", label: "任务历史", icon: History },
   { id: "tasks", label: "任务列表", icon: ListChecks },
   { id: "add", label: "添加任务", icon: PlusCircle },
-  { id: "history", label: "任务历史", icon: History },
+  { id: "references", label: "参照管理", icon: Crosshair },
 ];
 
 /** 业务说明：根据当前后台入口返回顶部小标题，帮助用户确认所在模块。 */

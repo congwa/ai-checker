@@ -27,20 +27,27 @@ export function ScoreChart({ runs, variant }: ScoreChartProps) {
   const config = chartConfig[variant];
   const option = {
     backgroundColor: "transparent",
-    tooltip: { trigger: "axis" },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(7, 16, 24, 0.94)",
+      borderColor: "rgba(255,255,255,0.12)",
+      textStyle: { color: "#e2e8f0" },
+    },
     grid: { left: 42, right: 18, top: 24, bottom: 36 },
     xAxis: {
       type: "category",
       data: series.map((point) => point.label),
-      axisLine: { lineStyle: { color: "#334155" } },
+      axisLine: { lineStyle: { color: "rgba(148,163,184,0.28)" } },
+      axisTick: { show: false },
       axisLabel: { color: "#94a3b8" },
     },
     yAxis: {
       type: "value",
-      min: 90,
+      min: 0,
       max: 100,
-      axisLine: { lineStyle: { color: "#334155" } },
-      splitLine: { lineStyle: { color: "#1e293b" } },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "rgba(148,163,184,0.12)" } },
       axisLabel: { color: "#94a3b8" },
     },
     series: [
@@ -52,6 +59,7 @@ export function ScoreChart({ runs, variant }: ScoreChartProps) {
         symbolSize: 7,
         lineStyle: { width: 3, color: config.color },
         itemStyle: { color: config.color },
+        areaStyle: { color: config.color, opacity: 0.08 },
       },
     ],
   };

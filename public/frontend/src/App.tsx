@@ -11,17 +11,17 @@ import { usePublicDashboard } from "@/hooks/use-public-dashboard";
 export default function App() {
   const dashboard = usePublicDashboard();
   return (
-    <main className="min-h-screen px-4 py-5 md:px-6 lg:px-8">
+    <main className="min-h-screen px-4 py-5 text-slate-100 md:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-5">
         <PublicHeader isLoading={dashboard.isLoading} onRefresh={dashboard.refreshOverview} />
 
-        {dashboard.error ? <div className="rounded-md border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-100">{dashboard.error}</div> : null}
+        {dashboard.error ? <div className="rounded-md border border-rose-300/30 bg-rose-300/10 p-3 text-sm text-rose-100">{dashboard.error}</div> : null}
 
         <TaskCards tasks={dashboard.tasks} selectedTaskId={dashboard.selectedTaskId} onSelect={dashboard.setSelectedTaskId} />
 
         <PublicMetrics task={dashboard.selectedTask} />
 
-        <Card>
+        <Card className="overflow-hidden">
           <div className="flex items-center justify-between">
             <CardTitle>相似度评分趋势</CardTitle>
             {dashboard.selectedTask ? <Badge tone={dashboard.selectedTask.enabled ? "warning" : "neutral"}>{dashboard.selectedTask.enabled ? "调度中" : "已停用"}</Badge> : null}

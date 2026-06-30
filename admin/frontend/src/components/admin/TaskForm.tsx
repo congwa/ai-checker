@@ -35,7 +35,10 @@ const emptyForm: TaskPayload = {
   interval_seconds: 3600,
   smoothing_level: 65,
   enabled: true,
-  public_enabled: true,
+  public_enabled: false,
+  public_score_range_enabled: false,
+  public_score_min: 85,
+  public_score_max: 100,
 };
 
 /** 业务说明：渲染任务配置表单，编辑时 API Key 留空表示沿用后端已加密密钥。 */
@@ -62,6 +65,9 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
       smoothing_level: task.smoothing_level,
       enabled: task.enabled,
       public_enabled: task.public_enabled,
+      public_score_range_enabled: task.public_score_range_enabled,
+      public_score_min: task.public_score_min,
+      public_score_max: task.public_score_max,
     });
   }, [task]);
 
@@ -70,6 +76,18 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
     event.preventDefault();
     if (!form.reference_id) {
       setFormError("请选择一个已成功标定的参照，任务会自动继承它的题目和采样次数。");
+      return;
+    }
+    if (form.public_score_range_enabled && form.public_score_max - form.public_score_min < 5) {
+      setFormError("前台显示分区间至少需要相差 5 分。");
+      return;
+    }
+    if (
+      form.public_score_min < 0 ||
+      form.public_score_max > 100 ||
+      form.public_score_min >= form.public_score_max
+    ) {
+      setFormError("前台显示分区间必须在 0-100 之间，且最低分小于最高分。");
       return;
     }
     setIsSaving(true);
@@ -167,7 +185,45 @@ export function TaskForm({ task, references, onSubmit }: TaskFormProps) {
             checked={form.public_enabled}
             onCheckedChange={(checked) => setForm({ ...form, public_enabled: checked })}
           />
+          <SwitchField
+            id="task-public-score-range-enabled"
+            label="前台分区间"
+            checked={form.public_score_range_enabled}
+            onCheckedChange={(checked) =>
+              setForm({ ...form, public_score_range_enabled: checked })
+            }
+          />
         </div>
+        {form.public_score_range_enabled ? (
+          <div className="grid gap-3 rounded-md border border-white/10 bg-white/[0.04] p-3 sm:grid-cols-2">
+            <Field label="最低显示分" htmlFor="task-public-score-min">
+              <Input
+                id="task-public-score-min"
+                type="number"
+                min={0}
+                max={100}
+                step={0.01}
+                value={form.public_score_min}
+                onChange={(event) =>
+                  setForm({ ...form, public_score_min: Number(event.target.value) })
+                }
+              />
+            </Field>
+            <Field label="最高显示分" htmlFor="task-public-score-max">
+              <Input
+                id="task-public-score-max"
+                type="number"
+                min={0}
+                max={100}
+                step={0.01}
+                value={form.public_score_max}
+                onChange={(event) =>
+                  setForm({ ...form, public_score_max: Number(event.target.value) })
+                }
+              />
+            </Field>
+          </div>
+        ) : null}
         <Button className="w-full" type="submit" disabled={isSaving} aria-busy={isSaving}>
           {isSaving ? <StatusIcon status="running" /> : <Save className="h-4 w-4" />}
           {isSaving ? "保存中" : "保存任务"}

@@ -9,7 +9,7 @@ import pytest
 
 from app.config import Settings
 from app.main import app, get_repository, get_runtime_settings
-from app.models import RunView
+from app.models import ReferenceCreate, RunView, TaskCreate
 from app.repository import RedisRepository
 
 
@@ -69,6 +69,306 @@ async def test_admin_api_requires_token_and_hides_api_key() -> None:
             payload = response.json()
             assert "api_key" not in payload
             assert payload["name"] == "公开任务"
+    finally:
+        app.dependency_overrides.clear()
+
+
+async def test_admin_api_updates_run_public_settings() -> None:
+    """后台可通过 API 隐藏单次运行并覆盖或清除它的前台展示分。"""
+
+    redis = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    repository = RedisRepository(redis)
+    settings = Settings(
+        redis_url="redis://test",
+        admin_token="test-token",
+        secret_key="test-secret",
+        cors_origins=[],
+        scheduler_poll_seconds=60,
+        provider_timeout_seconds=5,
+        request_delay_seconds=0,
+    )
+    reference = await repository.create_reference(
+        payload=ReferenceCreate(
+            name="公开参照",
+            base_url="https://api.example.com/v1",
+            api_key="secret",
+            model="gpt-reference",
+        ),
+        encrypted_api_key="encrypted",
+    )
+    await redis.hset(
+        f"reference:{reference.id}",
+        mapping={"latest_success_run_id": "run-reference", "latest_run_status": "success"},
+    )
+    task = await repository.create_task(
+        payload=TaskCreate(
+            name="公开任务",
+            base_url="https://api.example.com/v1",
+            api_key="secret",
+            model="gpt-test",
+            reference_id=reference.id,
+        ),
+        encrypted_api_key="encrypted",
+    )
+    run = RunView(
+        id="run-public-api",
+        task_id=task.id,
+        status="success",
+        started_at=1.0,
+        completed_at=2.0,
+        sample_count=10,
+        success_count=10,
+        failed_count=0,
+        raw_similarity=0.91,
+        display_score=91.0,
+        smooth_score=91.0,
+        baseline_run_id="run-reference",
+        stats={"mean": 1.0},
+    )
+    await repository.save_run(run, [1.0] + [0.0] * 354, [1] * 10)
+
+    app.dependency_overrides[get_repository] = lambda: repository
+    app.dependency_overrides[get_runtime_settings] = lambda: settings
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            updated = await client.patch(
+                f"/api/tasks/{task.id}/runs/{run.id}/public",
+                headers={"Authorization": "Bearer test-token"},
+                json={"public_enabled": False, "public_score_override": 88.25},
+            )
+            assert updated.status_code == 200
+            assert updated.json()["public_enabled"] is False
+            assert updated.json()["public_score_override"] == 88.25
+            assert updated.json()["public_score"] == 88.25
+            assert updated.json()["display_score"] == 91.0
+
+            cleared = await client.patch(
+                f"/api/tasks/{task.id}/runs/{run.id}/public",
+                headers={"Authorization": "Bearer test-token"},
+                json={"public_enabled": True, "public_score_override": None},
+            )
+            assert cleared.status_code == 200
+            assert cleared.json()["public_enabled"] is True
+            assert cleared.json()["public_score_override"] is None
+            assert cleared.json()["public_score"] == 91.0
+    finally:
+        app.dependency_overrides.clear()
+
+
+async def test_admin_api_rejects_run_public_score_override_outside_task_range() -> None:
+    """启用渠道显示分区间后，单次运行覆盖分不能突破该区间。"""
+
+    redis = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    repository = RedisRepository(redis)
+    settings = Settings(
+        redis_url="redis://test",
+        admin_token="test-token",
+        secret_key="test-secret",
+        cors_origins=[],
+        scheduler_poll_seconds=60,
+        provider_timeout_seconds=5,
+        request_delay_seconds=0,
+    )
+    reference = await repository.create_reference(
+        payload=ReferenceCreate(
+            name="区间参照",
+            base_url="https://api.example.com/v1",
+            api_key="secret",
+            model="gpt-reference",
+        ),
+        encrypted_api_key="encrypted",
+    )
+    task = await repository.create_task(
+        payload=TaskCreate(
+            name="区间任务",
+            base_url="https://api.example.com/v1",
+            api_key="secret",
+            model="gpt-test",
+            reference_id=reference.id,
+            public_score_range_enabled=True,
+            public_score_min=90.0,
+            public_score_max=95.0,
+        ),
+        encrypted_api_key="encrypted",
+    )
+    run = RunView(
+        id="run-public-range-api",
+        task_id=task.id,
+        status="success",
+        started_at=1.0,
+        completed_at=2.0,
+        sample_count=10,
+        success_count=10,
+        failed_count=0,
+        raw_similarity=0.91,
+        display_score=91.0,
+        smooth_score=91.0,
+        baseline_run_id="run-reference",
+        stats={"mean": 1.0},
+    )
+    await repository.save_run(run, [1.0] + [0.0] * 354, [1] * 10)
+
+    app.dependency_overrides[get_repository] = lambda: repository
+    app.dependency_overrides[get_runtime_settings] = lambda: settings
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            rejected = await client.patch(
+                f"/api/tasks/{task.id}/runs/{run.id}/public",
+                headers={"Authorization": "Bearer test-token"},
+                json={"public_score_override": 96.0},
+            )
+            assert rejected.status_code == 400
+            assert rejected.json()["detail"] == "前台展示分必须在 90-95 之间"
+
+            accepted = await client.patch(
+                f"/api/tasks/{task.id}/runs/{run.id}/public",
+                headers={"Authorization": "Bearer test-token"},
+                json={"public_score_override": 92.0},
+            )
+            assert accepted.status_code == 200
+            assert accepted.json()["public_score_override"] == 92.0
+            assert accepted.json()["public_score"] == 92.0
+    finally:
+        app.dependency_overrides.clear()
+
+
+async def test_admin_api_deletes_single_task_run() -> None:
+    """后台应支持删除某次任务历史记录，并让详情接口不再返回它。"""
+
+    redis = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    repository = RedisRepository(redis)
+    settings = Settings(
+        redis_url="redis://test",
+        admin_token="test-token",
+        secret_key="test-secret",
+        cors_origins=[],
+        scheduler_poll_seconds=60,
+        provider_timeout_seconds=5,
+        request_delay_seconds=0,
+    )
+    reference = await repository.create_reference(
+        payload=ReferenceCreate(
+            name="删除参照",
+            base_url="https://api.example.com/v1",
+            api_key="secret",
+            model="gpt-reference",
+        ),
+        encrypted_api_key="encrypted",
+    )
+    task = await repository.create_task(
+        payload=TaskCreate(
+            name="删除任务",
+            base_url="https://api.example.com/v1",
+            api_key="secret",
+            model="gpt-test",
+            reference_id=reference.id,
+        ),
+        encrypted_api_key="encrypted",
+    )
+    run = RunView(
+        id="run-delete-api",
+        task_id=task.id,
+        status="success",
+        started_at=1.0,
+        completed_at=2.0,
+        sample_count=10,
+        success_count=10,
+        failed_count=0,
+        raw_similarity=0.91,
+        display_score=91.0,
+        smooth_score=91.0,
+        baseline_run_id="run-reference",
+        stats={"mean": 1.0},
+    )
+    await repository.save_run(run, [1.0] + [0.0] * 354, [1] * 10)
+
+    app.dependency_overrides[get_repository] = lambda: repository
+    app.dependency_overrides[get_runtime_settings] = lambda: settings
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            deleted = await client.delete(
+                f"/api/tasks/{task.id}/runs/{run.id}",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            assert deleted.status_code == 200
+            assert deleted.json() == {"deleted": True}
+
+            detail = await client.get(
+                f"/api/tasks/{task.id}/runs/{run.id}",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            assert detail.status_code == 404
+
+            missing = await client.delete(
+                f"/api/tasks/{task.id}/runs/{run.id}",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            assert missing.status_code == 404
+    finally:
+        app.dependency_overrides.clear()
+
+
+async def test_admin_api_deletes_single_reference_run() -> None:
+    """后台应支持删除某次参照标定历史。"""
+
+    redis = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    repository = RedisRepository(redis)
+    settings = Settings(
+        redis_url="redis://test",
+        admin_token="test-token",
+        secret_key="test-secret",
+        cors_origins=[],
+        scheduler_poll_seconds=60,
+        provider_timeout_seconds=5,
+        request_delay_seconds=0,
+    )
+    reference = await repository.create_reference(
+        payload=ReferenceCreate(
+            name="删除参照",
+            base_url="https://api.example.com/v1",
+            api_key="secret",
+            model="gpt-reference",
+        ),
+        encrypted_api_key="encrypted",
+    )
+    run = RunView(
+        id="reference-delete-api",
+        task_id=reference.id,
+        status="success",
+        started_at=1.0,
+        completed_at=2.0,
+        sample_count=10,
+        success_count=10,
+        failed_count=0,
+        raw_similarity=1.0,
+        display_score=100.0,
+        smooth_score=100.0,
+        baseline_run_id="reference-delete-api",
+        stats={"mean": 1.0},
+    )
+    await repository.save_reference_run(reference.id, run, [1.0] + [0.0] * 354, [1] * 10)
+
+    app.dependency_overrides[get_repository] = lambda: repository
+    app.dependency_overrides[get_runtime_settings] = lambda: settings
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            deleted = await client.delete(
+                f"/api/references/{reference.id}/runs/{run.id}",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            assert deleted.status_code == 200
+            assert deleted.json() == {"deleted": True}
+
+            history = await client.get(
+                f"/api/references/{reference.id}/runs",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            assert history.status_code == 200
+            assert history.json() == []
     finally:
         app.dependency_overrides.clear()
 

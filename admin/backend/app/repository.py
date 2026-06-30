@@ -22,6 +22,7 @@ from app.models import (
     TaskUpdate,
     TaskView,
 )
+from app.scoring import is_score_in_public_range, ranged_public_score
 
 
 class RedisRepository:
@@ -56,6 +57,11 @@ class RedisRepository:
             "smoothing_level": str(payload.smoothing_level),
             "enabled": self._bool_to_str(payload.enabled),
             "public_enabled": self._bool_to_str(payload.public_enabled),
+            "public_score_range_enabled": self._bool_to_str(
+                payload.public_score_range_enabled,
+            ),
+            "public_score_min": str(payload.public_score_min),
+            "public_score_max": str(payload.public_score_max),
             "baseline_run_id": "",
             "last_run_id": "",
             "last_smooth_score": "",
@@ -418,6 +424,10 @@ class RedisRepository:
             "raw_similarity": str(run.raw_similarity),
             "display_score": str(run.display_score),
             "smooth_score": str(run.smooth_score),
+            "public_enabled": self._bool_to_str(run.public_enabled and run.status == "success"),
+            "public_score_override": str(run.public_score_override)
+            if run.public_score_override is not None
+            else "",
             "baseline_run_id": run.baseline_run_id or "",
             "error_summary": run.error_summary or "",
             "stats": json.dumps(run.stats, ensure_ascii=False),
@@ -435,6 +445,10 @@ class RedisRepository:
 
         run_ids = await self.redis.zrevrange(f"task:{task_id}:runs", 0, limit - 1)
         runs = [run for run_id in run_ids if (run := await self.get_run(run_id)) is not None]
+        public_scores = await self._get_effective_public_scores(task_id)
+        for run in runs:
+            if run.id in public_scores:
+                run.public_score = public_scores[run.id]
         return runs
 
     async def get_run(self, run_id: str) -> RunView | None:
@@ -445,12 +459,67 @@ class RedisRepository:
             return None
         return self._decode_run(raw_run)
 
+    async def delete_run(self, owner_id: str, run_id: str) -> bool:
+        """删除某次任务或参照运行记录，并同步清理曲线索引和最新摘要。"""
+
+        raw_run = await self.redis.hgetall(self._run_key(run_id))
+        if not raw_run or raw_run.get("task_id") != owner_id:
+            return False
+        async with self.redis.pipeline(transaction=True) as pipe:
+            pipe.zrem(f"task:{owner_id}:runs", run_id)
+            pipe.zrem(f"reference:{owner_id}:runs", run_id)
+            pipe.delete(self._run_key(run_id))
+            pipe.delete(f"run:{run_id}:dist")
+            pipe.delete(f"run:{run_id}:numbers")
+            await pipe.execute()
+
+        if await self.redis.exists(self._task_key(owner_id)):
+            await self._refresh_task_latest_run(owner_id)
+        if await self.redis.exists(self._reference_key(owner_id)):
+            await self._refresh_reference_latest_runs(owner_id)
+        return True
+
+    async def update_run_public_settings(
+        self,
+        task_id: str,
+        run_id: str,
+        public_enabled: bool | None,
+        public_score_override: float | None,
+        public_score_override_provided: bool,
+    ) -> RunView | None:
+        """更新某次运行的前台可见性和展示分数覆盖，不改变真实评分结果。"""
+
+        raw_run = await self.redis.hgetall(self._run_key(run_id))
+        if not raw_run or raw_run.get("task_id") != task_id:
+            return None
+        updates: dict[str, str] = {}
+        if public_enabled is not None:
+            updates["public_enabled"] = self._bool_to_str(
+                public_enabled and raw_run.get("status") == "success",
+            )
+        if public_score_override_provided:
+            updates["public_score_override"] = (
+                str(public_score_override) if public_score_override is not None else ""
+            )
+        if updates:
+            await self.redis.hset(self._run_key(run_id), mapping=updates)
+        run = await self.get_run(run_id)
+        if run is None:
+            return None
+        public_scores = await self._get_effective_public_scores(task_id)
+        if run.id in public_scores:
+            run.public_score = public_scores[run.id]
+        return run
+
     async def get_run_detail(self, run_id: str) -> RunDetail | None:
         """读取单次运行详情，附带分布和原始采样以支持后台审计。"""
 
         run = await self.get_run(run_id)
         if run is None:
             return None
+        public_scores = await self._get_effective_public_scores(run.task_id)
+        if run.id in public_scores:
+            run.public_score = public_scores[run.id]
         return RunDetail(
             **run.model_dump(),
             distribution=await self.get_run_distribution(run_id),
@@ -522,7 +591,57 @@ class RedisRepository:
 
         run_ids = await self.redis.zrangebyscore(f"task:{task_id}:runs", since_timestamp, "+inf")
         runs = [run for run_id in run_ids if (run := await self.get_run(run_id)) is not None]
+        public_scores = await self._get_effective_public_scores(task_id)
+        for run in runs:
+            if run.id in public_scores:
+                run.public_score = public_scores[run.id]
         return [run for run in runs if run.status == "success"]
+
+    async def _refresh_task_latest_run(self, task_id: str) -> None:
+        """运行记录删除后，重新计算任务卡片上的最新运行摘要。"""
+
+        latest_raw_run: dict[str, Any] | None = None
+        for run_id in await self.redis.zrevrange(f"task:{task_id}:runs", 0, -1):
+            raw_run = await self.redis.hgetall(self._run_key(run_id))
+            if raw_run:
+                latest_raw_run = raw_run
+                break
+            await self.redis.zrem(f"task:{task_id}:runs", run_id)
+        await self.redis.hset(
+            self._task_key(task_id),
+            mapping={
+                "last_run_id": latest_raw_run["id"] if latest_raw_run else "",
+                "last_smooth_score": latest_raw_run["smooth_score"] if latest_raw_run else "",
+                "updated_at": str(time.time()),
+            },
+        )
+
+    async def _refresh_reference_latest_runs(self, reference_id: str) -> None:
+        """运行记录删除后，重新计算参照的最新运行和最新成功基准。"""
+
+        latest_raw_run: dict[str, Any] | None = None
+        latest_success_run_id = ""
+        for run_id in await self.redis.zrevrange(f"reference:{reference_id}:runs", 0, -1):
+            raw_run = await self.redis.hgetall(self._run_key(run_id))
+            if not raw_run:
+                await self.redis.zrem(f"reference:{reference_id}:runs", run_id)
+                continue
+            if latest_raw_run is None:
+                latest_raw_run = raw_run
+            if raw_run.get("status") == "success" and not latest_success_run_id:
+                latest_success_run_id = raw_run["id"]
+            if latest_raw_run is not None and latest_success_run_id:
+                break
+
+        await self.redis.hset(
+            self._reference_key(reference_id),
+            mapping={
+                "latest_run_id": latest_raw_run["id"] if latest_raw_run else "",
+                "latest_success_run_id": latest_success_run_id,
+                "latest_run_status": latest_raw_run["status"] if latest_raw_run else "",
+                "updated_at": str(time.time()),
+            },
+        )
 
     def _task_key(self, task_id: str) -> str:
         """生成任务 Hash key，确保所有模块使用同一 Redis 命名约定。"""
@@ -593,6 +712,11 @@ class RedisRepository:
             "smoothing_level": int(raw_task["smoothing_level"]),
             "enabled": self._str_to_bool(raw_task["enabled"]),
             "public_enabled": self._str_to_bool(raw_task["public_enabled"]),
+            "public_score_range_enabled": self._str_to_bool(
+                raw_task.get("public_score_range_enabled", "0"),
+            ),
+            "public_score_min": float(raw_task.get("public_score_min") or 85.0),
+            "public_score_max": float(raw_task.get("public_score_max") or 100.0),
             "baseline_run_id": raw_task.get("baseline_run_id") or None,
             "last_run_id": raw_task.get("last_run_id") or None,
             "last_smooth_score": float(raw_task["last_smooth_score"])
@@ -638,6 +762,16 @@ class RedisRepository:
         """把 Redis Hash 转换为运行结果视图，统一后台历史和公开曲线的数据格式。"""
 
         stats = json.loads(raw_run.get("stats") or "{}")
+        smooth_score = float(raw_run["smooth_score"])
+        public_score_override_raw = raw_run.get("public_score_override")
+        public_score_override = (
+            float(public_score_override_raw) if public_score_override_raw else None
+        )
+        public_enabled_raw = raw_run.get(
+            "public_enabled",
+            "1" if raw_run.get("status") == "success" else "0",
+        )
+        public_enabled = self._str_to_bool(public_enabled_raw)
         return RunView(
             id=raw_run["id"],
             task_id=raw_run["task_id"],
@@ -649,11 +783,78 @@ class RedisRepository:
             failed_count=int(raw_run["failed_count"]),
             raw_similarity=float(raw_run["raw_similarity"]),
             display_score=float(raw_run["display_score"]),
-            smooth_score=float(raw_run["smooth_score"]),
+            smooth_score=smooth_score,
+            public_enabled=public_enabled,
+            public_score_override=public_score_override,
+            public_score=(
+                public_score_override if public_score_override is not None else smooth_score
+            ),
             baseline_run_id=raw_run.get("baseline_run_id") or None,
             error_summary=raw_run.get("error_summary") or None,
             stats=stats,
         )
+
+    async def _get_effective_public_scores(self, task_id: str) -> dict[str, float]:
+        """按当前任务区间配置重算公开成功运行的最终前台展示分。"""
+
+        raw_task = await self.redis.hgetall(self._task_key(task_id))
+        if not raw_task:
+            return {}
+        task = self._decode_task_dict(raw_task)
+        run_ids = await self.redis.zrange(f"task:{task_id}:runs", 0, -1)
+        public_scores: dict[str, float] = {}
+        previous_public_score: float | None = None
+        for run_id in run_ids:
+            raw_run = await self.redis.hgetall(self._run_key(run_id))
+            if not raw_run or not self._is_public_success_run(raw_run):
+                continue
+            score = self._calculate_effective_public_score(
+                raw_run,
+                task,
+                previous_public_score,
+            )
+            public_scores[raw_run["id"]] = score
+            previous_public_score = score
+        return public_scores
+
+    def _calculate_effective_public_score(
+        self,
+        raw_run: dict[str, Any],
+        task: dict[str, Any],
+        previous_public_score: float | None,
+    ) -> float:
+        """计算单次运行在当前任务配置下的最终前台展示分。"""
+
+        override = raw_run.get("public_score_override")
+        if override:
+            override_score = float(override)
+            if not task["public_score_range_enabled"] or is_score_in_public_range(
+                override_score,
+                task["public_score_min"],
+                task["public_score_max"],
+            ):
+                return round(override_score, 2)
+
+        base_score = float(raw_run["smooth_score"])
+        if not task["public_score_range_enabled"]:
+            return base_score
+        return ranged_public_score(
+            base_public_score=base_score,
+            previous_public_score=previous_public_score,
+            smoothing_level=task["smoothing_level"],
+            run_id=raw_run["id"],
+            min_score=task["public_score_min"],
+            max_score=task["public_score_max"],
+        )
+
+    def _is_public_success_run(self, raw_run: dict[str, Any]) -> bool:
+        """判断运行是否可参与前台展示分连续性；隐藏运行不参与。"""
+
+        public_enabled = raw_run.get(
+            "public_enabled",
+            "1" if raw_run.get("status") == "success" else "0",
+        )
+        return raw_run.get("status") == "success" and public_enabled == "1"
 
     def _decode_run_job(self, raw_job: dict[str, Any]) -> RunJobView:
         """把 Redis Hash 转换为 Job 视图，统一后台轮询和行内反馈的数据格式。"""

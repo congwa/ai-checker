@@ -35,7 +35,7 @@ export function ReferenceList({
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-800">
-      <div className="hidden grid-cols-[minmax(170px,1fr)_118px_120px_150px] gap-3 border-b border-slate-800 bg-slate-900/90 px-4 py-3 text-xs font-semibold uppercase text-slate-500 lg:grid">
+      <div className="hidden grid-cols-[minmax(170px,1fr)_118px_120px_230px] gap-3 border-b border-slate-800 bg-slate-900/90 px-4 py-3 text-xs font-semibold uppercase text-slate-500 lg:grid">
         <span>参照</span>
         <span>标定状态</span>
         <span>标定次数</span>
@@ -50,7 +50,7 @@ export function ReferenceList({
         return (
           <article
             key={reference.id}
-            className="grid gap-3 border-b border-slate-800 bg-slate-950/60 px-4 py-4 last:border-b-0 hover:bg-slate-900/50 lg:grid-cols-[minmax(170px,1fr)_118px_120px_150px] lg:items-center"
+            className="grid gap-3 border-b border-slate-800 bg-slate-950/60 px-4 py-4 last:border-b-0 hover:bg-slate-900/50 lg:grid-cols-[minmax(170px,1fr)_118px_120px_230px] lg:items-center"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2 truncate text-sm font-semibold text-slate-100">
@@ -83,6 +83,7 @@ export function ReferenceList({
               <DeleteConfirmIconButton
                 ariaLabel={`删除参照 ${reference.name}`}
                 tooltip="删除参照"
+                buttonLabel="删除参照"
                 title={`删除参照「${reference.name}」？`}
                 description="参照配置会被移除，已保存的历史运行记录仍保留用于审计。依赖它的新任务需要重新选择可用基准。"
                 confirmLabel="删除参照"

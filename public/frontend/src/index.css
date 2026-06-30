@@ -3,9 +3,9 @@
 
 :root {
   color-scheme: dark;
-  font-family: "Aptos", "Segoe UI", "Microsoft YaHei", sans-serif;
-  background: #08111b;
-  color: #eef7ff;
+  font-family: "Fira Sans", "Aptos", "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: #071018;
+  color: #f1f8ff;
   letter-spacing: 0;
 }
 
@@ -13,10 +13,12 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 18% 10%, rgba(56, 189, 248, 0.16), transparent 30rem),
-    radial-gradient(circle at 82% 2%, rgba(45, 212, 191, 0.12), transparent 28rem),
-    linear-gradient(145deg, #07111f 0%, #0f172a 58%, #09111d 100%);
+  background-color: #071018;
+  background-image:
+    linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, transparent 38%, rgba(20, 184, 166, 0.08) 70%, transparent 100%),
+    linear-gradient(rgba(125, 211, 252, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 211, 252, 0.05) 1px, transparent 1px);
+  background-size: auto, 56px 56px, 56px 56px;
 }
 
 button,
@@ -35,4 +37,3 @@ select {
     transition-duration: 0.01ms !important;
   }
 }
-

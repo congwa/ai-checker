@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 interface DeleteConfirmIconButtonProps {
   ariaLabel: string;
   tooltip: string;
+  buttonLabel?: string;
   title: string;
   description: string;
   confirmLabel: string;
@@ -30,6 +31,7 @@ interface DeleteConfirmIconButtonProps {
 export function DeleteConfirmIconButton({
   ariaLabel,
   tooltip,
+  buttonLabel,
   title,
   description,
   confirmLabel,
@@ -42,8 +44,14 @@ export function DeleteConfirmIconButton({
       <Tooltip>
         <TooltipTrigger asChild>
           <AlertDialogTrigger asChild>
-            <Button size="icon" variant="danger" disabled={disabled} aria-label={ariaLabel}>
+            <Button
+              size={buttonLabel ? "compact" : "icon"}
+              variant="danger"
+              disabled={disabled}
+              aria-label={ariaLabel}
+            >
               {isDeleting ? <StatusIcon status="running" /> : <Trash2 className="h-4 w-4" />}
+              {buttonLabel ? <span>{buttonLabel}</span> : null}
             </Button>
           </AlertDialogTrigger>
         </TooltipTrigger>

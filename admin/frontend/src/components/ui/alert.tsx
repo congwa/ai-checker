@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva("rounded-md border p-3 text-sm", {
+const alertVariants = cva("rounded-md border p-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]", {
   variants: {
     variant: {
-      default: "border-sky-400/30 bg-sky-400/10 text-sky-100",
-      success: "border-teal-400/30 bg-teal-400/10 text-teal-100",
-      destructive: "border-rose-400/30 bg-rose-400/10 text-rose-100",
+      default: "border-sky-300/30 bg-sky-300/10 text-sky-100",
+      success: "border-teal-300/30 bg-teal-300/10 text-teal-100",
+      destructive: "border-rose-300/30 bg-rose-300/10 text-rose-100",
     },
   },
   defaultVariants: {
