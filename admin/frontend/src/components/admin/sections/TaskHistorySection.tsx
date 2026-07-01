@@ -52,12 +52,13 @@ export function TaskHistorySection({ dashboard, onEdit, onDeleteTask }: TaskHist
         />
       </section>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-white/[0.12] bg-[linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] md:flex-row md:items-center md:justify-between">
+      <section className="relative overflow-hidden rounded-lg border border-white/[0.11] bg-[linear-gradient(135deg,rgba(255,255,255,0.065),rgba(255,255,255,0.022))] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] md:flex md:items-center md:justify-between md:gap-4">
+        <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-[#b7f860] via-[#39e6c1] to-[#ffb84d]" />
         <div>
           <h2 className="font-display text-lg font-semibold text-[#f4f7ef]">{dashboard.selectedTask.name}</h2>
           <div className="mt-1 text-sm text-slate-400">{dashboard.selectedTask.model}</div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2 md:mt-0 md:justify-end">
           <StatusBadge status={dashboard.selectedTask.enabled ? "success" : "disabled"} label={dashboard.selectedTask.enabled ? "调度中" : "已停用"} />
           <Button variant="secondary" onClick={() => onEdit(dashboard.selectedTask!.id)}>
             编辑任务

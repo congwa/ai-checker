@@ -12,19 +12,23 @@ export default function App() {
   const dashboard = usePublicDashboard();
   return (
     <main className="min-h-screen px-4 py-5 text-slate-100 md:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1380px] space-y-5">
+      <div className="mx-auto max-w-[1420px] space-y-5">
         <PublicHeader isLoading={dashboard.isLoading} onRefresh={dashboard.refreshOverview} />
 
-        {dashboard.error ? <div className="rounded-md border border-rose-300/[0.35] bg-rose-400/[0.12] p-3 text-sm text-rose-100">{dashboard.error}</div> : null}
+        {dashboard.error ? (
+          <div className="rounded-lg border border-rose-300/[0.3] bg-rose-400/[0.1] p-3 text-sm font-medium text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.045)]">
+            {dashboard.error}
+          </div>
+        ) : null}
 
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <TaskCards tasks={dashboard.tasks} selectedTaskId={dashboard.selectedTaskId} onSelect={dashboard.setSelectedTaskId} />
           <PublicMetrics task={dashboard.selectedTask} />
         </section>
 
         <Card className="relative overflow-hidden p-0">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#6ba8ff] via-[#39e6c1] to-[#ffb84d]" />
-          <div className="flex flex-col gap-3 border-b border-white/[0.12] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-white/[0.11] p-4 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>相似度评分趋势</CardTitle>
             {dashboard.selectedTask ? <Badge tone={dashboard.selectedTask.enabled ? "warning" : "neutral"}>{dashboard.selectedTask.enabled ? "调度中" : "已停用"}</Badge> : null}
           </div>

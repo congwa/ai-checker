@@ -20,6 +20,7 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
       backgroundColor: "rgba(5, 6, 7, 0.95)",
       borderColor: "rgba(255,255,255,0.12)",
       textStyle: { color: "#e2e8f0" },
+      axisPointer: { type: "shadow", shadowStyle: { color: "rgba(255,255,255,0.05)" } },
     },
     grid: { left: 42, right: 18, top: 20, bottom: 64 },
     xAxis: {
@@ -35,17 +36,32 @@ export function DistributionChart({ distribution }: DistributionChartProps) {
       axisLabel: { color: "#9aa4ae" },
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.09)" } },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.08)", type: "dashed" } },
     },
     series: [
       {
         name: "频率",
         type: "bar",
         data: buckets,
-        barMaxWidth: 18,
-        itemStyle: { color: "#6ba8ff", borderRadius: [3, 3, 0, 0] },
+        barMaxWidth: 16,
+        itemStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: "#6ba8ff" },
+              { offset: 0.55, color: "#39e6c1" },
+              { offset: 1, color: "rgba(57,230,193,0.28)" },
+            ],
+          },
+          borderRadius: [3, 3, 0, 0],
+        },
       },
     ],
+    animationDuration: 450,
   };
   return <ReactECharts option={option} style={{ height: 260, width: "100%" }} />;
 }

@@ -3,10 +3,10 @@
 
 @theme {
   --font-sans: "IBM Plex Sans", "Fira Sans", "Aptos", "Noto Sans SC", sans-serif;
-  --font-display: "Aptos Display", "IBM Plex Sans Condensed", "Fira Sans", "Noto Sans SC", sans-serif;
-  --color-ops-ink: #050607;
-  --color-ops-panel: #0b0e10;
-  --color-ops-panel-raised: #10151a;
+  --font-display: "IBM Plex Sans Condensed", "Aptos Display", "Fira Sans", "Noto Sans SC", sans-serif;
+  --color-ops-ink: #030506;
+  --color-ops-panel: #090c0d;
+  --color-ops-panel-raised: #111618;
   --color-ops-line: rgba(255, 255, 255, 0.11);
   --color-signal-lime: #b7f860;
   --color-signal-teal: #39e6c1;
@@ -17,29 +17,31 @@
 :root {
   color-scheme: dark;
   font-family: var(--font-sans);
-  background: #050607;
+  background: #030506;
   color: #f5f7f2;
   letter-spacing: 0;
   font-synthesis: none;
   text-rendering: geometricPrecision;
+  font-variant-numeric: tabular-nums;
 }
 
 html {
-  background: #050607;
+  background: #030506;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #050607;
+  background-color: #030506;
   background-image:
-    linear-gradient(112deg, rgba(57, 230, 193, 0.12) 0%, transparent 36%),
-    linear-gradient(238deg, rgba(255, 184, 77, 0.12) 0%, transparent 42%),
-    linear-gradient(rgba(255, 255, 255, 0.046) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.038) 1px, transparent 1px);
+    linear-gradient(108deg, rgba(57, 230, 193, 0.11) 0%, transparent 32%),
+    linear-gradient(244deg, rgba(255, 184, 77, 0.1) 0%, transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 28%),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.034) 1px, transparent 1px);
   background-position: 0 0, 0 0, -1px -1px, -1px -1px;
-  background-size: auto, auto, 48px 48px, 48px 48px;
+  background-size: auto, auto, auto, 48px 48px, 48px 48px;
 }
 
 body::before {
@@ -49,9 +51,9 @@ body::before {
   pointer-events: none;
   content: "";
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 18%),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 5px);
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 82%);
+    linear-gradient(90deg, rgba(183, 248, 96, 0.055), transparent 22%, rgba(57, 230, 193, 0.04) 56%, transparent 82%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 5px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.88), transparent 86%);
 }
 
 #root {
@@ -60,7 +62,7 @@ body::before {
 }
 
 ::selection {
-  background: rgba(183, 248, 96, 0.28);
+  background: rgba(183, 248, 96, 0.3);
   color: #fbfff1;
 }
 
@@ -70,11 +72,11 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: #060708;
+  background: #030506;
 }
 
 ::-webkit-scrollbar-thumb {
-  border: 3px solid #060708;
+  border: 3px solid #030506;
   border-radius: 999px;
   background: rgba(183, 248, 96, 0.35);
 }

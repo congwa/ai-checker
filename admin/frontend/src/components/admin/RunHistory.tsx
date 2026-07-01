@@ -72,7 +72,10 @@ export function RunHistory({
             parsedDraftScore > maxAllowed);
 
         return (
-        <article key={run.id} className="rounded-lg border border-white/[0.12] bg-white/[0.055] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.08]">
+        <article
+          key={run.id}
+          className="rounded-lg border border-white/[0.105] bg-white/[0.05] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.075]"
+        >
           <div className="flex items-start justify-between gap-3">
             <button
               type="button"
@@ -91,8 +94,12 @@ export function RunHistory({
               {run.error_summary ? <p className="mt-2 text-xs text-amber-200">{run.error_summary}</p> : null}
             </button>
             <div className="shrink-0 text-right">
-              <div className="font-display text-xl font-bold text-slate-100">{formatScore(run.smooth_score)}</div>
+              <div className="rounded-md border border-[#39e6c1]/20 bg-[#39e6c1]/[0.08] px-2 py-1 font-display text-xl font-bold leading-none text-[#b7fff0]">
+                {formatScore(run.smooth_score)}
+              </div>
+              <div className="mt-2">
               <StatusBadge status={run.status === "success" ? "success" : "failed"} label={getRunStatusLabel(run.status)} />
+              </div>
               <div className="mt-2 flex justify-end">
                 <DeleteConfirmIconButton
                   ariaLabel={`删除 ${formatDateTime(run.completed_at)} 的运行记录`}
@@ -109,7 +116,7 @@ export function RunHistory({
             </div>
           </div>
           {run.status === "success" ? (
-            <div className="mt-3 rounded-md border border-white/[0.12] bg-black/25 p-3">
+            <div className="mt-3 rounded-md border border-white/[0.105] bg-black/25 p-3">
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <label className="inline-flex items-center gap-2 text-xs font-medium text-slate-300">
@@ -123,10 +130,7 @@ export function RunHistory({
                     <span>{run.public_enabled ? "前台展示" : "前台隐藏"}</span>
                     {isBusy ? <StatusIcon status="running" className="text-[#b7fff0]" /> : null}
                   </label>
-                  <StatusBadge
-                    status={run.public_enabled ? "info" : "disabled"}
-                    label={`前台分 ${formatScore(publicScore)}`}
-                  />
+                  <StatusBadge status={run.public_enabled ? "info" : "disabled"} label={`前台分 ${formatScore(publicScore)}`} />
                 </div>
                 <div className="flex flex-wrap items-end gap-2">
                   <label className="min-w-[150px] flex-1 text-xs font-medium text-slate-400">

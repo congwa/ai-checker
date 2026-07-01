@@ -1,7 +1,7 @@
 /** 业务说明：后台登录页组件，在进入任务管理工作台前校验本地管理密钥。 */
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
-import { LockKeyhole } from "lucide-react";
+import { Activity, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,9 +34,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         transition={{ duration: 0.28 }}
         className="w-full max-w-4xl"
       >
-        <Card className="relative grid overflow-hidden p-0 md:grid-cols-[0.9fr_1fr]">
+        <Card className="relative grid overflow-hidden p-0 md:grid-cols-[0.88fr_1fr]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#b7f860] via-[#39e6c1] to-[#ffb84d]" />
-          <section className="hidden min-h-[360px] border-r border-white/[0.12] bg-[linear-gradient(145deg,rgba(183,248,96,0.14),rgba(8,10,11,0.2)_42%,rgba(255,184,77,0.13))] p-7 md:flex md:flex-col md:justify-between">
+          <section className="hidden min-h-[380px] border-r border-white/[0.12] bg-[linear-gradient(145deg,rgba(183,248,96,0.12),rgba(8,10,11,0.18)_42%,rgba(255,184,77,0.1))] p-7 md:flex md:flex-col md:justify-between">
             <div className="flex items-center gap-3">
               <img
                 className="h-12 w-12 rounded-md bg-black/30 object-contain p-1 shadow-[0_0_0_1px_rgba(183,248,96,.28)]"
@@ -51,9 +51,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             </div>
 
             <div>
-              <div className="mb-4 h-px w-28 bg-gradient-to-r from-[#b7f860] to-transparent" />
-              <div className="font-display text-4xl font-bold leading-tight text-[#f6f8f0]">Secure Ops</div>
-              <div className="mt-3 flex gap-2">
+              <div className="mb-5 grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-white/[0.11] bg-black/20 p-3">
+                  <ShieldCheck className="h-4 w-4 text-[#b7f860]" />
+                  <div className="mt-3 text-xs font-semibold text-slate-500">Access</div>
+                  <div className="mt-1 text-lg font-bold text-slate-100">Protected</div>
+                </div>
+                <div className="rounded-lg border border-white/[0.11] bg-black/20 p-3">
+                  <Activity className="h-4 w-4 text-[#39e6c1]" />
+                  <div className="mt-3 text-xs font-semibold text-slate-500">Mode</div>
+                  <div className="mt-1 text-lg font-bold text-slate-100">Monitor</div>
+                </div>
+              </div>
+              <div className="font-display text-4xl font-bold leading-tight text-[#f6f8f0]">Ops Control</div>
+              <div className="mt-4 flex gap-2">
                 <span className="h-1.5 w-10 rounded-full bg-[#b7f860]" />
                 <span className="h-1.5 w-5 rounded-full bg-[#39e6c1]" />
                 <span className="h-1.5 w-3 rounded-full bg-[#ffb84d]" />

@@ -51,8 +51,8 @@ export function TaskList({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-white/[0.12] bg-black/20">
-      <div className="hidden grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] gap-3 border-b border-white/[0.12] bg-white/[0.045] px-4 py-3 text-xs font-semibold text-slate-500 lg:grid">
+    <div className="overflow-hidden rounded-lg border border-white/[0.11] bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]">
+      <div className="hidden grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] gap-3 border-b border-white/[0.11] bg-white/[0.04] px-4 py-3 text-xs font-semibold text-slate-500 lg:grid">
         <span>任务</span>
         <span>相似度评分</span>
         <span>状态</span>
@@ -74,10 +74,10 @@ export function TaskList({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, delay: index * 0.04 }}
             className={cn(
-              "grid gap-3 border-b border-white/[0.09] bg-transparent px-4 py-4 transition last:border-b-0 lg:grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] lg:items-center",
+              "grid gap-3 border-b border-white/[0.085] bg-transparent px-4 py-4 transition last:border-b-0 lg:grid-cols-[minmax(220px,1.4fr)_120px_190px_170px_280px] lg:items-center",
               selectedTaskId === task.id
-                ? "bg-[#b7f860]/[0.08] shadow-[inset_3px_0_0_rgba(183,248,96,0.95)]"
-                : "hover:bg-white/[0.045]",
+                ? "bg-[#b7f860]/[0.075] shadow-[inset_3px_0_0_rgba(183,248,96,0.95)]"
+                : "hover:bg-white/[0.04]",
             )}
           >
             <button
@@ -96,7 +96,7 @@ export function TaskList({
                 <p className="mt-2 text-xs text-rose-200">{job.error_summary ?? "最近一次运行失败"}</p>
               ) : null}
             </button>
-            <div className="w-fit rounded-md border border-[#39e6c1]/25 bg-[#39e6c1]/[0.09] px-3 py-2 font-display text-2xl font-bold leading-none text-[#b7fff0] lg:text-lg">
+            <div className="w-fit rounded-md border border-[#39e6c1]/25 bg-[#39e6c1]/[0.09] px-3 py-2 font-display text-2xl font-bold leading-none text-[#b7fff0] shadow-[inset_0_1px_0_rgba(255,255,255,0.045)] lg:text-lg">
               {formatScore(task.last_smooth_score)}
             </div>
             <div className="space-y-2">

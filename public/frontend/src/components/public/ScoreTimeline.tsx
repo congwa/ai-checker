@@ -17,14 +17,15 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
       backgroundColor: "rgba(5, 7, 10, 0.95)",
       borderColor: "rgba(255,255,255,0.12)",
       textStyle: { color: "#e2e8f0" },
+      axisPointer: { lineStyle: { color: "rgba(255,255,255,0.24)" } },
     },
-    grid: { left: 42, right: 18, top: 24, bottom: 36 },
+    grid: { left: 42, right: 18, top: 24, bottom: 38 },
     xAxis: {
       type: "category",
       data: series.map((point) => point.label),
       axisLine: { lineStyle: { color: "rgba(255,255,255,0.18)" } },
       axisTick: { show: false },
-      axisLabel: { color: "#a7b3c3" },
+      axisLabel: { color: "#a7b3c3", margin: 14 },
     },
     yAxis: {
       type: "value",
@@ -32,7 +33,7 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
       max: 100,
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.09)" } },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.08)", type: "dashed" } },
       axisLabel: { color: "#a7b3c3" },
     },
     series: [
@@ -41,12 +42,15 @@ export function ScoreTimeline({ points }: ScoreTimelineProps) {
         type: "line",
         smooth: true,
         data: series.map((point) => point.score),
-        symbolSize: 7,
+        symbol: "circle",
+        symbolSize: 8,
         lineStyle: { width: 3, color: "#39e6c1" },
-        itemStyle: { color: "#39e6c1" },
-        areaStyle: { color: "#39e6c1", opacity: 0.08 },
+        itemStyle: { color: "#39e6c1", borderColor: "#05070a", borderWidth: 2 },
+        areaStyle: { color: "rgba(57, 230, 193, 0.15)" },
+        emphasis: { focus: "series" },
       },
     ],
+    animationDuration: 450,
   };
   return <ReactECharts option={option} style={{ height: 320, width: "100%" }} />;
 }

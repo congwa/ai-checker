@@ -7,7 +7,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <section
       className={cn(
-        "rounded-lg border border-white/[0.12] bg-[linear-gradient(180deg,rgba(18,22,24,0.94),rgba(8,10,11,0.94))] p-4 text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.055)] ring-1 ring-black/40 backdrop-blur-xl",
+        "rounded-lg border border-white/[0.105] bg-[linear-gradient(180deg,rgba(17,22,23,0.94),rgba(6,8,9,0.95))] p-4 text-slate-100 shadow-[0_20px_64px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-black/45 backdrop-blur-xl",
         className,
       )}
       {...props}
@@ -22,7 +22,7 @@ export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElemen
 
 /** 业务说明：提供卡片标题区，帮助后台用户快速定位当前信息块的业务含义。 */
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("font-display text-sm font-semibold text-[#f4f7ef]", className)} {...props} />;
+  return <h2 className={cn("font-display text-base font-semibold text-[#f4f7ef]", className)} {...props} />;
 }
 
 /** 业务说明：提供卡片说明文字，承接后台规则、约束和下一步操作提示。 */

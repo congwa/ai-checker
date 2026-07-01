@@ -6,13 +6,13 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 text-sm font-semibold transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b7f860]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050607] disabled:pointer-events-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 lg:h-10",
+  "inline-flex h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 text-sm font-semibold transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b7f860]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030506] disabled:pointer-events-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-50 motion-reduce:transition-none motion-reduce:hover:translate-y-0 lg:h-10",
   {
     variants: {
       variant: {
-        default: "border border-[#e4ff8a]/[0.45] bg-[#b7f860] text-[#07100d] shadow-[0_14px_32px_rgba(183,248,96,0.19)] hover:bg-[#d6ff7f]",
-        primary: "border border-[#e4ff8a]/[0.45] bg-[#b7f860] text-[#07100d] shadow-[0_14px_32px_rgba(183,248,96,0.19)] hover:bg-[#d6ff7f]",
-        secondary: "border border-white/[0.12] bg-white/[0.075] text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/[0.2] hover:bg-white/[0.12]",
+        default: "border border-[#e4ff8a]/[0.45] bg-[#b7f860] text-[#07100d] shadow-[0_12px_28px_rgba(183,248,96,0.16)] hover:bg-[#d7ff80]",
+        primary: "border border-[#e4ff8a]/[0.45] bg-[#b7f860] text-[#07100d] shadow-[0_12px_28px_rgba(183,248,96,0.16)] hover:bg-[#d7ff80]",
+        secondary: "border border-white/[0.12] bg-white/[0.07] text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] hover:border-white/[0.2] hover:bg-white/[0.11]",
         destructive: "border border-rose-300/30 bg-rose-500 text-white shadow-[0_14px_32px_rgba(244,63,94,0.22)] hover:bg-rose-400",
         danger: "border border-rose-300/30 bg-rose-500 text-white shadow-[0_14px_32px_rgba(244,63,94,0.22)] hover:bg-rose-400",
         outline: "border border-white/[0.14] bg-black/20 text-slate-100 hover:border-[#39e6c1]/[0.45] hover:bg-[#39e6c1]/10",

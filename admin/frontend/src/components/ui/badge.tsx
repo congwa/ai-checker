@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export type BadgeTone = "success" | "warning" | "danger" | "neutral" | "info";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md border px-2 py-1 text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-colors",
+  "inline-flex items-center rounded-md border px-2 py-1 text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors",
   {
     variants: {
       tone: {

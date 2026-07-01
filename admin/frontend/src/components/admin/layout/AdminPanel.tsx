@@ -22,16 +22,16 @@ export function AdminPanel({
   bodyClassName,
 }: AdminPanelProps) {
   return (
-    <Card className={cn("relative overflow-hidden", className)}>
+    <Card className={cn("relative overflow-hidden p-0", className)}>
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#39e6c1]/70 via-white/20 to-[#ffb84d]/60" />
-      <div className="flex flex-col gap-3 border-b border-white/[0.12] pb-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 border-b border-white/[0.11] px-4 py-4 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle>{title}</CardTitle>
           {description ? <div className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">{description}</div> : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
-      <div className={cn("mt-4", bodyClassName)}>{children}</div>
+      <div className={cn("p-4", bodyClassName)}>{children}</div>
     </Card>
   );
 }
