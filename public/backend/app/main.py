@@ -61,10 +61,10 @@ async def overview(repository: PublicRepository = Depends(get_repository)) -> Ov
 @app.get("/api/tasks/{task_id}/series", response_model=SeriesResponse)
 async def task_series(
     task_id: str,
-    range: str = "24h",  # noqa: A002 - HTTP 查询参数沿用业务命名 range
+    range: str = "30d",  # noqa: A002 - HTTP 查询参数沿用业务命名 range
     repository: PublicRepository = Depends(get_repository),
 ) -> SeriesResponse:
-    """返回公开任务评分曲线，默认展示最近 24 小时成功运行点。"""
+    """返回公开任务评分曲线，默认展示最近 30 天成功运行点。"""
 
     result = await repository.get_series(task_id, range)
     if result is None:
@@ -85,4 +85,3 @@ async def run_detail(
     if detail is None:
         raise HTTPException(status_code=404, detail="公开运行记录不存在")
     return detail
-

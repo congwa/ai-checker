@@ -190,3 +190,60 @@ async def test_public_api_recalculates_history_with_task_score_range() -> None:
             assert detail.json()["display_score"] == detail.json()["smooth_score"]
     finally:
         app.dependency_overrides.clear()
+
+
+async def test_public_api_series_defaults_to_thirty_days() -> None:
+    """公开曲线不带 range 参数时应默认返回最近 30 天内的公开成功点。"""
+
+    redis = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    now = time.time()
+    await redis.sadd("public:task:index", "task-default-range")
+    await redis.hset(
+        "task:task-default-range",
+        mapping={
+            "id": "task-default-range",
+            "name": "默认窗口模型",
+            "model": "gpt-range-default",
+            "enabled": "1",
+            "last_run_id": "run-30h",
+            "last_smooth_score": "91.2",
+            "updated_at": str(now),
+        },
+    )
+    for run_id, completed_at, score in [
+        ("run-31d", now - 31 * 24 * 60 * 60, 90.0),
+        ("run-30h", now - 30 * 60 * 60, 91.2),
+    ]:
+        await redis.hset(
+            f"run:{run_id}",
+            mapping={
+                "id": run_id,
+                "task_id": "task-default-range",
+                "status": "success",
+                "completed_at": str(completed_at),
+                "display_score": str(score),
+                "smooth_score": str(score),
+                "public_enabled": "1",
+                "public_score_override": "",
+                "success_count": "50",
+                "failed_count": "0",
+                "stats": json.dumps({"mean": 120.0}),
+            },
+        )
+    await redis.zadd(
+        "task:task-default-range:runs",
+        {
+            "run-31d": now - 31 * 24 * 60 * 60,
+            "run-30h": now - 30 * 60 * 60,
+        },
+    )
+
+    app.dependency_overrides[get_repository] = lambda: PublicRepository(redis)
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            series = await client.get("/api/tasks/task-default-range/series")
+            assert series.status_code == 200
+            assert [point["run_id"] for point in series.json()["points"]] == ["run-30h"]
+    finally:
+        app.dependency_overrides.clear()

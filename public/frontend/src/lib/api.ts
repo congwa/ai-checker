@@ -19,6 +19,6 @@ export function fetchOverview() {
 }
 
 /** 业务说明：读取指定公开任务曲线，供看板展示相似度评分趋势。 */
-export function fetchSeries(taskId: string, rangeName = "24h") {
+export function fetchSeries(taskId: string, rangeName = "30d") {
   return requestJson<SeriesResponse>(`/api/tasks/${taskId}/series?range=${rangeName}`);
 }

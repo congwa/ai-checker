@@ -297,4 +297,4 @@ class PublicRepository:
         """将前台传入的时间范围映射为秒数，限制公开 API 的查询窗口。"""
 
         ranges = {"1h": 3600, "24h": 86400, "7d": 604800, "30d": 2592000}
-        return ranges.get(range_name, ranges["24h"])
+        return ranges.get(range_name, ranges["30d"])

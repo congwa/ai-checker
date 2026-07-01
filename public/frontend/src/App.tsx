@@ -87,7 +87,7 @@ export default function App() {
                     Telemetry
                   </div>
                   <CardTitle className="whitespace-nowrap">相似度评分趋势</CardTitle>
-                  <CardDescription className="mt-1">公开脱敏分数，按完成时间排序</CardDescription>
+                  <CardDescription className="mt-1">最近 30 天公开脱敏分数，按完成时间排序</CardDescription>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone="neutral">{dashboard.points.length} 点</Badge>

@@ -53,7 +53,7 @@ export function RunHistory({
     return <div className="rounded-md border border-dashed border-white/[0.16] bg-white/[0.045] p-6 text-sm text-slate-400">暂无运行记录</div>;
   }
   return (
-    <div className="space-y-3">
+    <div className="min-w-0 space-y-3">
       {runs.map((run) => {
         const isUpdating = runPublicUpdatingIds.has(run.id);
         const isDeleting = runDeletingIds.has(run.id);
@@ -74,26 +74,28 @@ export function RunHistory({
         return (
         <article
           key={run.id}
-          className="rounded-lg border border-white/[0.105] bg-white/[0.05] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.075]"
+          className="min-w-0 overflow-hidden rounded-lg border border-white/[0.105] bg-white/[0.05] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-white/[0.075]"
         >
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start justify-between gap-3">
             <button
               type="button"
               className="min-w-0 flex-1 rounded-md text-left focus:outline-none focus:ring-2 focus:ring-[#b7f860]/80"
               onClick={() => onSelectRun(run.id)}
             >
               <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+                <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-100">
                   <StatusIcon status={run.status === "success" ? "success" : "failed"} />
-                  {formatDateTime(run.completed_at)}
+                  <span className="truncate">{formatDateTime(run.completed_at)}</span>
                 </div>
                 <div className="mt-1 text-xs text-slate-400">
                   成功 {run.success_count} / 失败 {run.failed_count}
                 </div>
               </div>
-              {run.error_summary ? <p className="mt-2 text-xs text-amber-200">{run.error_summary}</p> : null}
+              {run.error_summary ? (
+                <p className="mt-2 break-words text-xs leading-5 text-amber-200">{run.error_summary}</p>
+              ) : null}
             </button>
-            <div className="shrink-0 text-right">
+            <div className="flex shrink-0 flex-col items-end text-right">
               <div className="rounded-md border border-[#39e6c1]/20 bg-[#39e6c1]/[0.08] px-2 py-1 font-display text-xl font-bold leading-none text-[#b7fff0]">
                 {formatScore(run.smooth_score)}
               </div>
@@ -104,7 +106,6 @@ export function RunHistory({
                 <DeleteConfirmIconButton
                   ariaLabel={`删除 ${formatDateTime(run.completed_at)} 的运行记录`}
                   tooltip="删除记录"
-                  buttonLabel="删除记录"
                   title={`删除 ${formatDateTime(run.completed_at)} 的运行记录？`}
                   description="这次测试会从后台历史、真实结果曲线、前台展示结果曲线和公开看板数据中移除。此操作不可撤销。"
                   confirmLabel="删除记录"
