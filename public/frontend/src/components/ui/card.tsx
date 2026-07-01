@@ -7,7 +7,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <section
       className={cn(
-        "rounded-lg border border-white/[0.105] bg-[linear-gradient(180deg,rgba(13,21,25,0.94),rgba(5,9,12,0.95))] p-4 shadow-[0_20px_64px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-black/45 backdrop-blur-xl",
+        "rounded-lg border border-white/[0.095] bg-[#050807]/[0.86] p-4 shadow-[0_20px_64px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.045)] ring-1 ring-black/45 backdrop-blur-xl",
         className,
       )}
       {...props}
@@ -22,12 +22,12 @@ export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElemen
 
 /** 业务说明：渲染公开看板模块标题，帮助观察者快速定位数据维度。 */
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("font-display text-base font-semibold text-[#f4f8ff]", className)} {...props} />;
+  return <h2 className={cn("font-display text-base font-semibold text-[#f4fffb]", className)} {...props} />;
 }
 
 /** 业务说明：渲染公开看板卡片说明，承载数据口径或更新时间等辅助信息。 */
 export function CardDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn("text-sm leading-6 text-slate-400", className)} {...props} />;
+  return <p className={cn("text-sm leading-6 text-[#83958f]", className)} {...props} />;
 }
 
 /** 业务说明：渲染公开看板卡片主体，承载曲线、分布和关键指标。 */

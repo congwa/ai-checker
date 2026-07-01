@@ -4,19 +4,19 @@
 @theme {
   --font-sans: "IBM Plex Sans", "Fira Sans", "Aptos", "Noto Sans SC", sans-serif;
   --font-display: "IBM Plex Sans Condensed", "Aptos Display", "Fira Sans", "Noto Sans SC", sans-serif;
-  --color-public-ink: #030609;
-  --color-public-panel: #081014;
+  --color-public-ink: #020403;
+  --color-public-panel: #050807;
   --color-public-line: rgba(255, 255, 255, 0.11);
-  --color-public-blue: #6ba8ff;
-  --color-public-teal: #39e6c1;
-  --color-public-amber: #ffb84d;
+  --color-public-teal: #5eead4;
+  --color-public-amber: #fbbf24;
+  --color-public-rose: #fb7185;
 }
 
 :root {
   color-scheme: dark;
   font-family: var(--font-sans);
-  background: #030609;
-  color: #f5f9ff;
+  background: #020403;
+  color: #f4fffb;
   letter-spacing: 0;
   font-synthesis: none;
   text-rendering: geometricPrecision;
@@ -24,22 +24,14 @@
 }
 
 html {
-  background: #030609;
+  background: #020403;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #030609;
-  background-image:
-    linear-gradient(110deg, rgba(107, 168, 255, 0.12) 0%, transparent 34%),
-    linear-gradient(244deg, rgba(57, 230, 193, 0.1) 0%, transparent 40%),
-    linear-gradient(180deg, rgba(255, 184, 77, 0.045), transparent 26%),
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.034) 1px, transparent 1px);
-  background-position: 0 0, 0 0, -1px -1px, -1px -1px;
-  background-size: auto, auto, auto, 52px 52px, 52px 52px;
+  background: #020403;
 }
 
 body::before {
@@ -48,10 +40,7 @@ body::before {
   z-index: -1;
   pointer-events: none;
   content: "";
-  background:
-    linear-gradient(90deg, rgba(107, 168, 255, 0.045), transparent 28%, rgba(57, 230, 193, 0.04) 64%, transparent 88%),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 5px);
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.88), transparent 86%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.72));
 }
 
 #root {
@@ -60,8 +49,8 @@ body::before {
 }
 
 ::selection {
-  background: rgba(107, 168, 255, 0.3);
-  color: #f8fbff;
+  background: rgba(94, 234, 212, 0.28);
+  color: #f4fffb;
 }
 
 ::-webkit-scrollbar {
@@ -70,19 +59,24 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: #030609;
+  background: #020403;
 }
 
 ::-webkit-scrollbar-thumb {
-  border: 3px solid #030609;
+  border: 3px solid #020403;
   border-radius: 999px;
-  background: rgba(107, 168, 255, 0.36);
+  background: rgba(94, 234, 212, 0.32);
 }
 
 button,
 input,
 select {
   font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
