@@ -30,7 +30,7 @@ export default function App() {
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#6ba8ff] via-[#39e6c1] to-[#ffb84d]" />
           <div className="flex flex-col gap-3 border-b border-white/[0.11] p-4 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>相似度评分趋势</CardTitle>
-            {dashboard.selectedTask ? <Badge tone={dashboard.selectedTask.enabled ? "warning" : "neutral"}>{dashboard.selectedTask.enabled ? "调度中" : "已停用"}</Badge> : null}
+            {dashboard.selectedTask ? <Badge tone={dashboard.selectedTask.enabled ? "warning" : "neutral"}>{dashboard.selectedTask.enabled ? "自动调度" : "已停用"}</Badge> : null}
           </div>
           <div className="px-1 pb-2 pt-3 sm:px-4">
             <ScoreTimeline points={dashboard.points} />

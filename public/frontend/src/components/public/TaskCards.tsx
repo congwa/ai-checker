@@ -54,10 +54,17 @@ export function TaskCards({ tasks, selectedTaskId, onSelect }: TaskCardsProps) {
             <Badge tone={task.latest_status === "success" ? "success" : task.latest_status === "failed" ? "danger" : "neutral"}>
               {task.latest_status === "success" ? "成功" : task.latest_status === "failed" ? "失败" : "待运行"}
             </Badge>
-            <Badge tone={task.enabled ? "warning" : "neutral"}>{task.enabled ? "调度中" : "已停用"}</Badge>
+            <Badge tone={task.enabled ? "warning" : "neutral"}>{task.enabled ? "自动调度" : "已停用"}</Badge>
           </div>
           <div className="mt-4 flex items-center gap-2">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
+            <div
+              className="h-1 flex-1 overflow-hidden rounded-full bg-white/[0.08]"
+              role="meter"
+              aria-label="相似度评分"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={task.last_smooth_score ?? 0}
+            >
               <div
                 className={cn(
                   "h-full rounded-full",
