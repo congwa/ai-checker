@@ -1,19 +1,19 @@
 ---
-name: deploy-ai-checker-vmrackl3base2
-description: Deploy and maintain the AI Checker project on vmrackl3base2. Use when deploying /Users/wang/code/xiaoji/ai-checker to admin-check.codexbuy.com or check.codexbuy.com, updating FastAPI/systemd/nginx/Redis 6381 production services, verifying the deployed admin/public dashboards, rolling back an AI Checker release, or updating /Users/wang/code/xiaoji/vps/ops/vmrackl3base2 documentation for this service.
+name: deploy-ai-checker-sfo
+description: Deploy and maintain AI Checker on the SFO application hub behind the sole aiyunus edge. Use when deploying /Users/wang/code/xiaoji/ai-checker to admin-check.codexbuy.com or check.codexbuy.com, updating FastAPI/systemd/SFO-nginx/Redis 6381 production services, verifying the admin/public dashboards, rolling back an AI Checker release, or updating the SFO and aiyunus deployment facts.
 ---
 
-# Deploy AI Checker Vmrackl3base2
+# Deploy AI Checker to SFO
 
 ## Purpose
 
-Deploy the AI Checker project from `/Users/wang/code/xiaoji/ai-checker` to `vmrackl3base2` (`root@50.118.184.167`) using local frontend builds, remote FastAPI systemd services, nginx, and a dedicated Redis instance. Treat the VPS as a runtime host: never run Vite, npm builds, or frontend dependency installs on the server.
+Deploy the AI Checker project from `/Users/wang/code/xiaoji/ai-checker` to SFO (`root@108.62.160.202`) using local frontend builds, remote FastAPI systemd services, SFO internal nginx, and a dedicated Redis instance. Public TLS terminates only on aiyunus and reaches SFO through WireGuard. Treat SFO as a runtime host: never run Vite, npm builds, or frontend dependency installs on the server.
 
 ## Fixed Context
 
 - Admin URL: `https://admin-check.codexbuy.com`
 - Public URL: `https://check.codexbuy.com`
-- Remote user/host: `root@50.118.184.167`
+- Remote user/host: `root@108.62.160.202`
 - Runtime user: `ai-checker`
 - Release root: `/opt/ai-checker/releases/<timestamp>`
 - Active symlink: `/opt/ai-checker/current`
@@ -23,18 +23,19 @@ Deploy the AI Checker project from `/Users/wang/code/xiaoji/ai-checker` to `vmra
 - Public API: `127.0.0.1:19381`, service `ai-checker-public-api`
 - Scheduler: service `ai-checker-scheduler`
 - Dedicated Redis: `127.0.0.1:6381`, service `redis-ai-checker`
-- nginx config: `/etc/nginx/conf.d/ai-checker.codexbuy.com.conf`
-- Certificate: `/etc/letsencrypt/live/ai-checker.codexbuy.com/fullchain.pem`
+- SFO nginx configs: `/etc/nginx/conf.d/admin-check.codexbuy.com.conf` and `/etc/nginx/conf.d/check.codexbuy.com.conf`
+- Public certificate and vhosts: aiyunus `/etc/letsencrypt/live/<fqdn>/` and `/etc/openresty/vhosts/<fqdn>.conf`; do not modify them during a normal application release.
 - Admin login token: stored outside the repository; pass it as `ADMIN_TOKEN` when running verification commands.
 
 ## Safety Rules
 
 - Preserve `/etc/ai-checker/*.env`; do not overwrite `SECRET_KEY` or disclose it in final messages.
 - Do not delete production Redis data unless the user explicitly asks to reset AI Checker.
-- Keep all runtime ports bound to `127.0.0.1`; public traffic must enter through nginx on `443`.
-- Keep Cloudflare source limiting: both AI Checker nginx servers should include `/etc/nginx/cloudflare-allow.conf`.
+- Keep all runtime ports bound to `127.0.0.1`; SFO nginx must listen only on `10.88.0.1:18080`, and public traffic must enter through aiyunus.
+- Keep one FQDN per nginx/OpenResty file. Do not combine the admin and public hosts.
+- Do not deploy application artifacts to aiyunus. Only change the edge when the task explicitly changes TLS, DNS, Cloudflare source limits, or routing.
 - Build frontends locally with production API bases, then sync `dist/`.
-- Respect dirty worktrees. In `/Users/wang/code/xiaoji/vps`, update only `ops/vmrackl3base2/*` for AI Checker deployment notes and do not touch unrelated `ops/aiyunus/*` changes.
+- Respect dirty worktrees. Record runtime changes in `/Users/wang/code/xiaoji/vps/ops/sfo/*`; update `/Users/wang/code/xiaoji/vps/ops/aiyunus/*` only when the public edge actually changes.
 - If remote `/tmp` is full, use `TMPDIR=/var/tmp` and `PIP_CACHE_DIR=/var/tmp/pip-cache-ai-checker`; do not clean `/tmp` without inspecting ownership and risk.
 - This AI Checker deployment does not involve VLESS REALITY, Xray, or 3x-ui. REALITY verification is unnecessary unless the task also changes proxy entrypoints or REALITY policy.
 
@@ -50,21 +51,21 @@ Deploy the AI Checker project from `/Users/wang/code/xiaoji/ai-checker` to `vmra
 Use the script for repeat deployments where the server already has env files, Redis, nginx, certs, and systemd units:
 
 ```bash
-/Users/wang/code/xiaoji/ai-checker/.agents/skills/deploy-ai-checker-vmrackl3base2/scripts/deploy-ai-checker-vmrackl3base2.sh
+/Users/wang/code/xiaoji/ai-checker/.agents/skills/deploy-ai-checker-sfo/scripts/deploy-ai-checker-sfo.sh
 ```
 
 Useful overrides:
 
 ```bash
 LOCAL_REPO=/Users/wang/code/xiaoji/ai-checker \
-REMOTE=root@50.118.184.167 \
-/Users/wang/code/xiaoji/ai-checker/.agents/skills/deploy-ai-checker-vmrackl3base2/scripts/deploy-ai-checker-vmrackl3base2.sh
+REMOTE=root@108.62.160.202 \
+/Users/wang/code/xiaoji/ai-checker/.agents/skills/deploy-ai-checker-sfo/scripts/deploy-ai-checker-sfo.sh
 ```
 
 Dry run:
 
 ```bash
-/Users/wang/code/xiaoji/ai-checker/.agents/skills/deploy-ai-checker-vmrackl3base2/scripts/deploy-ai-checker-vmrackl3base2.sh --dry-run
+/Users/wang/code/xiaoji/ai-checker/.agents/skills/deploy-ai-checker-sfo/scripts/deploy-ai-checker-sfo.sh --dry-run
 ```
 
 The script runs local backend lint/tests, frontend tests/builds, syncs a timestamped backend release, syncs static frontend assets, installs Python dependencies into release venvs, switches `/opt/ai-checker/current`, restarts only AI Checker services, reloads nginx after `nginx -t`, and verifies health endpoints.
@@ -73,7 +74,7 @@ The script runs local backend lint/tests, frontend tests/builds, syncs a timesta
 
 Use this when the server is missing infrastructure or the deployment needs to be rebuilt from scratch:
 
-1. Confirm DNS points to `50.118.184.167` for `admin-check.codexbuy.com` and `check.codexbuy.com`.
+1. Confirm DNS/public routing points to aiyunus `38.134.56.203` and that aiyunus forwards both FQDNs to SFO `10.88.0.1:18080`.
 2. Create system user `ai-checker` and directories under `/opt/ai-checker`, `/var/www/ai-checker`, `/etc/ai-checker`, and `/var/lib/ai-checker-redis`.
 3. Create `/etc/redis/ai-checker.conf` with `bind 127.0.0.1`, `port 6381`, `protected-mode yes`, `supervised systemd`, and `dir /var/lib/ai-checker-redis`.
 4. Create `redis-ai-checker.service` and verify `redis-cli -p 6381 PING`.
@@ -82,18 +83,18 @@ Use this when the server is missing infrastructure or the deployment needs to be
 7. Keep env permissions at `0640 root:ai-checker`.
 8. Deploy backend/frontend artifacts, create venvs, and install Python dependencies with `TMPDIR=/var/tmp`.
 9. Create systemd units for admin API, public API, and scheduler using `/opt/ai-checker/current`.
-10. Issue or renew certbot cert `ai-checker.codexbuy.com` for both domains.
-11. Create nginx servers for both domains, each with SPA static root and `/api/` proxy to the matching loopback API.
+10. Create separate SFO nginx files for both domains on `10.88.0.1:18080`, each with its SPA static root and `/api/` proxy to the matching loopback API.
+11. Only when rebuilding the public edge, create separate aiyunus vhosts and certificates for the two FQDNs, then verify WireGuard forwarding.
 
 ## Verification
 
 Run local-on-server checks:
 
 ```bash
-ssh root@50.118.184.167 'redis-cli -p 6381 PING'
-ssh root@50.118.184.167 'curl -fsS http://127.0.0.1:19380/health && echo'
-ssh root@50.118.184.167 'curl -fsS http://127.0.0.1:19381/health && echo'
-ssh root@50.118.184.167 'systemctl is-active redis-ai-checker ai-checker-admin-api ai-checker-public-api ai-checker-scheduler'
+ssh root@108.62.160.202 'redis-cli -p 6381 PING'
+ssh root@108.62.160.202 'curl -fsS http://127.0.0.1:19380/health && echo'
+ssh root@108.62.160.202 'curl -fsS http://127.0.0.1:19381/health && echo'
+ssh root@108.62.160.202 'systemctl is-active redis-ai-checker ai-checker-admin-api ai-checker-public-api ai-checker-scheduler'
 ```
 
 Run public checks:
@@ -109,30 +110,30 @@ curl -fsS https://check.codexbuy.com/api/overview
 Confirm boundary:
 
 ```bash
-ssh root@50.118.184.167 'ss -ltnp | grep -E ":(6381|19380|19381)\\b"'
-curl -kI --max-time 8 https://50.118.184.167/ || true
-curl --max-time 8 http://50.118.184.167:19380/health || true
-curl --max-time 8 http://50.118.184.167:19381/health || true
+ssh root@108.62.160.202 'ss -ltnp | grep -E ":(6381|19380|19381)\\b"'
+curl -kI --max-time 8 https://108.62.160.202/ || true
+curl --max-time 8 http://108.62.160.202:19380/health || true
+curl --max-time 8 http://108.62.160.202:19381/health || true
 ```
 
-Expected: backend and Redis ports are loopback only; direct IP HTTPS should not serve an AI Checker site; public domains should work through Cloudflare/nginx.
+Expected: backend and Redis ports are loopback only; SFO public IP must not serve AI Checker; public domains must work through aiyunus and SFO internal nginx.
 
 ## Logs And Rollback
 
 Useful logs:
 
 ```bash
-ssh root@50.118.184.167 'journalctl -u ai-checker-admin-api -n 100 --no-pager'
-ssh root@50.118.184.167 'journalctl -u ai-checker-public-api -n 100 --no-pager'
-ssh root@50.118.184.167 'journalctl -u ai-checker-scheduler -n 100 --no-pager'
-ssh root@50.118.184.167 'journalctl -u redis-ai-checker -n 80 --no-pager'
+ssh root@108.62.160.202 'journalctl -u ai-checker-admin-api -n 100 --no-pager'
+ssh root@108.62.160.202 'journalctl -u ai-checker-public-api -n 100 --no-pager'
+ssh root@108.62.160.202 'journalctl -u ai-checker-scheduler -n 100 --no-pager'
+ssh root@108.62.160.202 'journalctl -u redis-ai-checker -n 80 --no-pager'
 ```
 
 Rollback by repointing `/opt/ai-checker/current` to a previous release and restarting:
 
 ```bash
-ssh root@50.118.184.167 'ls -1dt /opt/ai-checker/releases/* | head'
-ssh root@50.118.184.167 'ln -sfn /opt/ai-checker/releases/<previous> /opt/ai-checker/current && systemctl restart ai-checker-admin-api ai-checker-public-api ai-checker-scheduler'
+ssh root@108.62.160.202 'ls -1dt /opt/ai-checker/releases/* | head'
+ssh root@108.62.160.202 'ln -sfn /opt/ai-checker/releases/<previous> /opt/ai-checker/current && systemctl restart ai-checker-admin-api ai-checker-public-api ai-checker-scheduler'
 ```
 
 Then rerun the verification checks.
@@ -141,7 +142,8 @@ Then rerun the verification checks.
 
 When deployment facts change, update:
 
-- `/Users/wang/code/xiaoji/vps/ops/vmrackl3base2/README.md`
-- `/Users/wang/code/xiaoji/vps/ops/vmrackl3base2/deployment.md`
+- `/Users/wang/code/xiaoji/vps/ops/sfo/README.md`
+- `/Users/wang/code/xiaoji/vps/ops/sfo/deployment.md`
+- `/Users/wang/code/xiaoji/vps/ops/aiyunus/README.md` and `deployment.md` only if the public edge changed
 
 Record service names, ports, paths, cert name, Redis instance, validation time, and source-boundary status. Keep secrets out of docs.

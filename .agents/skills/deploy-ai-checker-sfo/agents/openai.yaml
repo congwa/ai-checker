@@ -1,0 +1,5 @@
+# 业务说明：这个元数据文件让 Codex 界面能识别 AI Checker 部署技能，并在用户发起生产发布或验证请求时展示合适的入口文案。
+interface:
+  display_name: "Deploy AI Checker to SFO"
+  short_description: "Deploy AI Checker through SFO and aiyunus"
+  default_prompt: "Use $deploy-ai-checker-sfo to deploy AI Checker to SFO and verify the aiyunus-to-SFO production path."

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # 业务说明：这个脚本负责 AI Checker 已完成基础设施初始化后的重复发布，把本地验证、前端生产构建、后端 release 同步、服务重启和线上验证串成稳定流程。
-# 使用场景：当 /Users/wang/code/xiaoji/ai-checker 已经通过开发验证，需要更新 vmrackl3base2 上的 admin-check.codexbuy.com 与 check.codexbuy.com 生产环境时运行。
+# 使用场景：当 /Users/wang/code/xiaoji/ai-checker 已经通过开发验证，需要更新 SFO 上的 admin-check.codexbuy.com 与 check.codexbuy.com 生产环境时运行。
 # 业务约束：脚本不会创建或覆盖生产密钥、证书和 Redis 数据；首次部署或基础设施缺失时应回到 SKILL.md 的 bootstrap 流程人工确认。
 
 set -euo pipefail
 
 LOCAL_REPO="${LOCAL_REPO:-/Users/wang/code/xiaoji/ai-checker}"
-REMOTE="${REMOTE:-root@50.118.184.167}"
+REMOTE="${REMOTE:-root@108.62.160.202}"
 ADMIN_API_BASE="${ADMIN_API_BASE:-https://admin-check.codexbuy.com}"
 PUBLIC_API_BASE="${PUBLIC_API_BASE:-https://check.codexbuy.com}"
 ADMIN_TOKEN="${ADMIN_TOKEN:-}"
@@ -18,10 +18,10 @@ SKIP_BUILD=0
 # 业务说明：向部署执行者展示脚本的业务入口和可调参数，避免临时改脚本造成生产发布不可复现。
 usage() {
   cat <<'EOF'
-Deploy AI Checker to vmrackl3base2 after the server has already been bootstrapped.
+Deploy AI Checker to SFO after the server has already been bootstrapped.
 
 Usage:
-  deploy-ai-checker-vmrackl3base2.sh [options]
+  deploy-ai-checker-sfo.sh [options]
 
 Options:
   --dry-run       Print commands without changing local or remote state.
